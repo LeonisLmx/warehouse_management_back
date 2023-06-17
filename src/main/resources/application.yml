@@ -1,0 +1,62 @@
+#针对容器的优化考虑到了线程数，超时时间
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 100
+    min-spare-threads: 20
+    connection-timeout: 5000ms
+  port: 8181
+  servlet:
+    session:
+      timeout: 7200s
+      cookie:
+        http-only: true
+
+spring:
+  profiles:
+    active: dev
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  #  Redis配置
+  redis:
+    database: 0
+    host: 119.3.251.42
+    port: 6379
+    password: "123456"
+    jedis:
+      pool:
+        max-idle: 8   #连接池中最大空闲连接
+        max-active: 8 #连接池最大链接数
+        max-wait: -1ms
+        min-idle: 0   #最小空闲连接
+  # 配置缓存
+  cache:
+    cache-names: menus_cache
+    redis:
+      time-to-live: 1800s
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+#mybatis
+mybatis-plus:
+  mapper-locations: classpath*:**/mapper/xml/*.xml
+  #  #实体扫描，多个package用逗号或者分号分隔
+  #  typeAliasesPackage: io.renren.modules.*.entity
+  global-config:
+    #数据库相关配置
+    db-config:
+      #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID",
+      #ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: AUTO
+      logic-delete-value: -1
+      logic-not-delete-value: 0
+    banner: false
+  #原生配置
+  configuration:
+    map-underscore-to-camel-case: false
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'

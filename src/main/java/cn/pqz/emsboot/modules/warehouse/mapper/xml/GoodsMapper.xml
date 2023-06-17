@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.warehouse.mapper.GoodsMapper">
+    <resultMap id="EnterListMap" type="cn.pqz.emsboot.modules.warehouse.entity.Goods">
+        <id property="id" column="id"/>
+        <result property="num" column="num"/>
+        <result property="orderNum" column="orderNum"/>
+        <result property="name" column="name1"/>
+        <result property="count" column="count"/>
+        <result property="type" column="type"/>
+        <result property="date" column="date"/>
+        <result property="operator" column="operator"/>
+        <result property="expCode" column="expCode"/>
+        <result property="expNo" column="expNo"/>
+        <result property="ship" column="ship"/>
+        <collection property="client" ofType="cn.pqz.emsboot.modules.output.entity.Client">
+            <result property="name" column="name2"/>
+            <result property="phone" column="phone"/>
+        </collection>
+    </resultMap>
+    <select id="enterList" resultMap="EnterListMap">
+        select g.id ,g.num,g.orderNum,g.operator,g.name as name1,g.count,g.type,g.date as date,g.expCode,g.expNo,g.ship,
+        c.name as name2,c.phone from goods g LEFT join client c on g.clientId=c.id
+    </select>
+</mapper>

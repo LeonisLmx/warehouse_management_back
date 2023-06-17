@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.output.mapper.OrderMapper">
+        <select id="getOrderByCid" resultType="cn.pqz.emsboot.modules.output.entity.OrderList">
+        select o.* from order_list o,client_order co where o.id=co.oid and co.cid=#{id}
+    </select>
+</mapper>

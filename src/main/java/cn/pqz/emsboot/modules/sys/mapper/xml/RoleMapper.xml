@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.sys.mapper.RoleMapper">
+    <resultMap id="RoleList" type="cn.pqz.emsboot.modules.sys.entity.Role">
+        <id property="id" column="id1"/>
+        <result property="name" column="name1"/>
+        <result property="nameZh" column="nameZh"/>
+        <result property="remark" column="remark"/>
+        <collection property="menus" ofType="cn.pqz.emsboot.modules.sys.entity.Menu">
+            <id property="id" column="id2"/>
+            <result property="name" column="name2"/>
+            <result property="level" column="level"/>
+            <result property="parentId" column="parentId"/>
+        </collection>
+    </resultMap>
+   <select id="getRoleList" resultMap="RoleList">
+       select r.id as id1,r.name as name1,r.nameZh,r.remark,m.id as id2,m.name as name2,m.level,m.parentId
+       from role r
+       left join menu_role mr on r.id = mr.rid
+       left join menu m on mr.mid=m.id
+   </select>
+</mapper>

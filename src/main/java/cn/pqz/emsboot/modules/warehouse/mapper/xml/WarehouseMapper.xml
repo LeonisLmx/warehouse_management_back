@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.warehouse.mapper.WarehouseMapper">
+    <resultMap id="ShelfMap" type="cn.pqz.emsboot.modules.warehouse.entity.Warehouse">
+        <id property="id" column="id1"/>
+        <result property="num" column="num1"/>
+        <result property="name" column="name1"/>
+        <result property="area" column="area1"/>
+        <result property="percentage" column="percentage1"/>
+        <result property="parentId" column="parentId1"/>
+        <collection property="shelf" ofType="cn.pqz.emsboot.modules.warehouse.entity.Warehouse">
+            <id property="id" column="id2"/>
+            <result property="num" column="num2"/>
+            <result property="name" column="name2"/>
+            <result property="area" column="area2"/>
+            <result property="percentage" column="percentage2"/>
+            <result property="parentId" column="parentId2"/>
+        </collection>
+    </resultMap>
+    <resultMap id="PositionMap" type="cn.pqz.emsboot.modules.warehouse.entity.Position">
+        <id property="id" column="id1"/>
+        <result property="num" column="num1"/>
+        <result property="percentage" column="percentage1"/>
+        <collection property="children" ofType="cn.pqz.emsboot.modules.warehouse.entity.Position">
+            <id property="id" column="id2"/>
+            <result property="num" column="num2"/>
+            <result property="percentage" column="percentage2"/>
+            <collection property="children" ofType="cn.pqz.emsboot.modules.warehouse.entity.Position">
+                <id property="id" column="id3"/>
+                <result property="num" column="num3"/>
+                <result property="percentage" column="percentage3"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <select id="myShelf" resultMap="ShelfMap">
+        select s.id as id1,s.num as num1,s.name as name1,s.area as area1,s.percentage as percentage1,s.parentId as parentId1,
+        l.id as id2,l.num as num2,l.name as name2,l.area as area2,l.percentage as percentage2,l.parentId as parentId2 from warehouse s,
+        warehouse l where s.id=l.parentId and s.parentId = #{id}
+    </select>
+    <select id="position" resultMap="PositionMap">
+        SELECT w1.id as id1,w1.num as num1,w1.percentage as percentage1,w2.id as id2,w2.num as num2,w2.percentage as percentage2,w3.id as id3,
+        w3.num as num3,w3.percentage as percentage3 FROM warehouse w1,warehouse w2,warehouse w3 WHERE w1.id=w2.parentId AND w2.id=w3.parentId AND w1.parentId=#{id}
+    </select>
+</mapper>

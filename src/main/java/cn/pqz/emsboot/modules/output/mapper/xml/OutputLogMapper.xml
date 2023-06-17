@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.output.mapper.OutputLogMapper">
+    <select id="getOutputLogList" resultType="cn.pqz.emsboot.modules.output.entity.OutputLog">
+       SELECT ol.*,u.username from output_log ol,user u where ol.operator=u.id and ol.oid = #{oid}
+   </select>
+</mapper>

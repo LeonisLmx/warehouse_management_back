@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.pqz.emsboot.modules.sys.mapper.MenuMapper">
+    <resultMap id="BaseResultMap" type="cn.pqz.emsboot.modules.sys.entity.Menu">
+        <id property="id" column="id"/>
+        <result property="pattern" column="pattern"/>
+        <collection property="roles" ofType="cn.pqz.emsboot.modules.sys.entity.Role">
+            <id property="id" column="rid"/>
+            <result property="name" column="rname"/>
+            <result property="nameZh" column="rnameZh"/>
+        </collection>
+    </resultMap>
+    <resultMap id="MenuListMap" type="cn.pqz.emsboot.modules.sys.entity.Menu">
+        <id property="id" column="id1"/>
+        <result property="path" column="path1"/>
+        <result property="icon" column="icon1"/>
+        <result property="level" column="level1"/>
+        <result property="name" column="name1"/>
+        <collection property="children" ofType="cn.pqz.emsboot.modules.sys.entity.Menu">
+            <id property="id" column="id2"/>
+            <result property="path" column="path2"/>
+            <result property="icon" column="icon2"/>
+            <result property="level" column="level2"/>
+            <result property="name" column="name2"/>
+        </collection>
+    </resultMap>
+    <select id="getAllMenus" resultMap="BaseResultMap">
+       SELECT m.id,m.pattern,r.id AS rid,r.name AS rname,r.nameZh AS rnameZh FROM menu m
+        LEFT JOIN menu_role mr ON m.`id`=mr.`mid` LEFT JOIN role r ON mr.`rid`=r.`id`
+    </select>
+    <!--菜单栏-->
+    <select id="menuList" resultMap="MenuListMap">
+        SELECT m1.id as id1,m1.path as path1,m1.name as name1,m1.icon as icon1,m1.level as level1,
+        m2.id as id2,m2.path as path2,m2.name as name2,m2.icon as icon2,m2.level as level2 from menu m1,menu m2
+        WHERE m1.id=m2.parentId and m1.enable=true and m2.enable=true ORDER BY m1.id,m2.id
+    </select>
+    <!--SELECT m1.id as id1,m1.path as path1,m1.name as name1,m1.icon as icon1,m1.level as level1,-->
+    <!--m2.id as id2,m2.path as path2,m2.name as name2,m2.icon as icon2,m2.level as level2-->
+    <!--from menu m1,menu m2,menu_role mr-->
+    <!--WHERE mr.mid=m1.id AND-->
+    <!--m1.id=m2.parentId and-->
+    <!--m1.enable=true and-->
+    <!--m2.enable=true-->
+    <!--AND mr.rid=1-->
+    <!--ORDER BY m1.id,m2.id-->
+    <!--权限列表-->
+    <select id="allMenuList" resultType="cn.pqz.emsboot.modules.sys.entity.Menu">
+        select * from menu where name like '%${name}%' order by level asc
+    </select>
+
+</mapper>
