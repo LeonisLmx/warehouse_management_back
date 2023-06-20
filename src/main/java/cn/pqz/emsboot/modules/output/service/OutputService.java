@@ -4,7 +4,7 @@ import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.entity.Output;
 import cn.pqz.emsboot.modules.output.entity.OutputLog;
 import cn.pqz.emsboot.modules.output.entity.Transition;
-import cn.pqz.emsboot.modules.output.mapper.OrderMapper;
+import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.output.mapper.OutputLogMapper;
 import cn.pqz.emsboot.modules.output.mapper.OutputMapper;
 import cn.pqz.emsboot.modules.output.mapper.TransitionMapper;
@@ -25,7 +25,7 @@ public class OutputService extends ServiceImpl<OutputMapper,Output> {
     @Autowired
     private OutputLogMapper outputLogMapper;
     @Autowired
-    private OrderMapper orderMapper;
+    private OrderListMapper orderListMapper;
     @Autowired
     private TransitionMapper transitionMapper;
 
@@ -61,9 +61,9 @@ public class OutputService extends ServiceImpl<OutputMapper,Output> {
         if (orderNum != null && orderNum != "") {
             QueryWrapper query = new QueryWrapper();
             query.eq("orderNum", orderNum);
-            OrderList order = orderMapper.selectOne(query);
+            OrderList order = orderListMapper.selectOne(query);
             order.setOrderState(2);
-            orderMapper.updateById(order);
+            orderListMapper.updateById(order);
         }
         //更新工作日志
         OutputLog outputLog = new OutputLog();
@@ -136,9 +136,9 @@ public class OutputService extends ServiceImpl<OutputMapper,Output> {
         if (orderNum != null && orderNum != "") {
             QueryWrapper query = new QueryWrapper();
             query.eq("orderNum", orderNum);
-            OrderList order = orderMapper.selectOne(query);
+            OrderList order = orderListMapper.selectOne(query);
             order.setOrderState(3);
-            orderMapper.updateById(order);
+            orderListMapper.updateById(order);
         } else {
             return;
         }

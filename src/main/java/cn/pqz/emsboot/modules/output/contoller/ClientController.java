@@ -3,11 +3,10 @@ package cn.pqz.emsboot.modules.output.contoller;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
-import cn.pqz.emsboot.modules.output.mapper.ClientMapper;
-import cn.pqz.emsboot.modules.output.mapper.OrderMapper;
 import cn.pqz.emsboot.modules.output.service.ClientService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,16 +24,21 @@ public class ClientController {
      * @return
      */
     @GetMapping("/clientList/")
-    public RespBean getClientList(@RequestParam("clientName") String name) {
-        RespBean respBean = null;
+    public RespBean getClientList(@RequestParam(value = "clientName", required = false) String name,
+                                  @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
+                                  @RequestParam(value = "cardNumber", required = false) String cardNumber) {
         try {
-           List<Client> clientList = clientService.getClientList(name);
-           respBean = RespBean.ok("", clientList);
+           List<Client> clientList = clientService.getClientList(name, phoneNumber, cardNumber);
+           return RespBean.ok("", clientList);
         } catch (Exception e) {
             e.printStackTrace();
-            respBean = RespBean.error("获取客户列表失败");
+            return RespBean.error("获取客户列表失败");
         }
-        return respBean;
+    }
+
+    @GetMapping("/client/{id}")
+    public RespBean getClientById(@PathVariable("id")Long id){
+        return RespBean.ok("", clientService.getClientById(id));
     }
 
     /**
@@ -46,7 +50,7 @@ public class ClientController {
     public RespBean getOrderById(@PathVariable("id") Integer id){
         RespBean respBean=null;
         try{
-            List<OrderList> orders=clientService.getOrderByCid(id);
+            List<OrderList> orders = clientService.getOrderByCid(id);
             respBean=RespBean.ok("",orders);
         }catch (Exception e){
             e.printStackTrace();
@@ -57,13 +61,9 @@ public class ClientController {
 
     @PostMapping("/addClient")
     public RespBean addClient(@RequestBody Client client) {
-        RespBean respBean = null;
-        Boolean i = clientService.save(client);
-        if (i) {
-            respBean = RespBean.ok("添加成功");
-        } else
-            respBean = RespBean.error("添加失败");
-        return respBean;
+        boolean i = clientService.save(client);
+        return i? RespBean.ok("添加成功"):RespBean.error("添加失败");
+
     }
     @PutMapping("/editClient")
     public RespBean editClient(@RequestBody Client client){
@@ -83,13 +83,17 @@ public class ClientController {
      */
     @PutMapping("/enterBlacklist/{id}")
     public RespBean enterBlacklist(@PathVariable("id") Integer id){
-        RespBean respBean=null;
-        int i=clientService.enterBlack(id);
-        if (i!=0)
-            respBean=RespBean.ok("受理成功");
-        else
-            respBean=RespBean.error("受理失败");
-        return respBean;
+        List<OrderList> orderByCid = clientService.getOrderByCid(id);
+        if (CollectionUtils.isEmpty(orderByCid)){
+            int i = clientService.enterBlack(id);
+            if (i!=0) {
+                return RespBean.ok("受理成功");
+            }else {
+                return RespBean.error("受理失败");
+            }
+        }else{
+            return RespBean.error("客户存在历史订购订单，无法拉黑");
+        }
     }
 
 

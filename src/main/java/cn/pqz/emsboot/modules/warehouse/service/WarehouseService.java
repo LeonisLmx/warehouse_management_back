@@ -5,7 +5,7 @@ import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.entity.Transition;
 import cn.pqz.emsboot.modules.output.mapper.Client_orderMapper;
-import cn.pqz.emsboot.modules.output.mapper.OrderMapper;
+import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.output.mapper.TransitionMapper;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import cn.pqz.emsboot.modules.warehouse.entity.*;
@@ -16,7 +16,6 @@ import cn.pqz.emsboot.modules.warehouse.mapper.WarehouseTransitionMapper;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import lombok.extern.log4j.Log4j;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class WarehouseService extends ServiceImpl<WarehouseMapper, Warehouse> {
     @Autowired
     private WarehouseTransitionMapper warehouseTransitionMapper;
     @Autowired
-    private OrderMapper orderMapper;
+    private OrderListMapper orderListMapper;
     @Autowired
     private Client_orderMapper client_orderMapper;
     @Autowired
@@ -222,9 +221,9 @@ public class WarehouseService extends ServiceImpl<WarehouseMapper, Warehouse> {
             if (orderNum != null && !orderNum.equals("")) {
                 QueryWrapper query = new QueryWrapper();
                 query.eq("orderNum", orderNum);
-                OrderList order = orderMapper.selectOne(query);
+                OrderList order = orderListMapper.selectOne(query);
                 order.setOrderState(4);
-                orderMapper.updateById(order);
+                orderListMapper.updateById(order);
             }
 //            logger.info("----------暂存待检库操作成功----------");
         }
@@ -323,13 +322,13 @@ public class WarehouseService extends ServiceImpl<WarehouseMapper, Warehouse> {
             } else {
                 QueryWrapper queryWrapper = new QueryWrapper();
                 queryWrapper.eq("orderNum", orderNum);
-                OrderList order = orderMapper.selectOne(queryWrapper);
+                OrderList order = orderListMapper.selectOne(queryWrapper);
                 QueryWrapper qu = new QueryWrapper();
                 qu.eq("oid", order.getId());
                 Client_order co = client_orderMapper.selectOne(qu);
                 cid = co.getCid();
                 order.setOrderState(5);
-                orderMapper.updateById(order);//order状态更新成功;
+                orderListMapper.updateById(order);//order状态更新成功;
             }
 //        logger.info("----------数据获取成功---------");
             //存入goods

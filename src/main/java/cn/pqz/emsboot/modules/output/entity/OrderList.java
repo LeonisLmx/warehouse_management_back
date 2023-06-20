@@ -18,4 +18,9 @@ public class OrderList implements Serializable {
     private Date date;//时间
     private Boolean transport;//是否发货
     private Integer orderState;//订单状态
+    private String util;
+    private boolean invoiceEnabled;
+    private String relationOrderId;
+    private Integer orderType;
+    private Long clientId;
 }
