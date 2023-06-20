@@ -1,20 +1,23 @@
 package cn.pqz.emsboot.modules.output.contoller;
 
 import cn.pqz.emsboot.modules.output.entity.OrderList;
-import cn.pqz.emsboot.modules.output.service.OrderService;
+import cn.pqz.emsboot.modules.output.http.OrderRequest;
+import cn.pqz.emsboot.modules.output.service.OrderListService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/order")
 public class OrderController {
     @Autowired
-    private OrderService orderService;
+    private OrderListService orderListService;
 
     /**
      * 获取订单列表
@@ -26,13 +29,13 @@ public class OrderController {
     @GetMapping("/orderList/")
     public RespBean orderList(@RequestParam("pageNum") Integer pageNum,
                               @RequestParam("size") Integer size,
-                              @RequestParam("query") String query){
-        RespBean respBean=null;
-        JSONObject obj=new JSONObject();
-        obj.put("data",orderService.orderList(pageNum,size,query));
-        obj.put("total",orderService.count());
-        respBean=RespBean.ok("",obj);
-        return respBean;
+                              @RequestParam("query") String query,
+                              @RequestParam("orderNumber")String orderNumber,
+                              @RequestParam("orderState") Integer orderState){
+        JSONObject obj = new JSONObject();
+        obj.put("data", orderListService.orderList(pageNum,size,query,orderNumber, orderState));
+        obj.put("total", orderListService.count());
+        return RespBean.ok("",obj);
     }
 
     /**
@@ -46,7 +49,7 @@ public class OrderController {
         try{QueryWrapper queryWrapper=new QueryWrapper();
         queryWrapper.eq("orderState",1);
         queryWrapper.like("name",name);
-        List<OrderList> orders=orderService.list(queryWrapper);
+        List<OrderList> orders= orderListService.list(queryWrapper);
         respBean=RespBean.ok("",orders);
         }catch (Exception e){
             e.printStackTrace();
@@ -55,14 +58,10 @@ public class OrderController {
         return respBean;
     }
     @PostMapping("/addOrder")
-    public RespBean addOrder(@RequestBody JSONObject json){
+    public RespBean addOrder(@RequestBody OrderRequest orderRequest){
         RespBean respBean=null;
         try{
-            String name=json.getString("name");
-            Double price=json.getDouble("price");
-            Integer count=json.getInteger("count");
-            Integer cid=json.getInteger("clientId");
-            orderService.addOrder(name,price,count,cid);
+            orderListService.addOrder(orderRequest);
             respBean=RespBean.ok("新建订单成功");
         }catch (Exception e){
             e.printStackTrace();
@@ -79,7 +78,7 @@ public class OrderController {
     @PutMapping("/editOrder")
     public RespBean editOrder(@RequestBody OrderList order){
         RespBean respBean=null;
-        Boolean i=orderService.updateById(order);
+        Boolean i= orderListService.updateById(order);
         if (i){
             respBean=RespBean.ok("修改成功");
         }else {
@@ -90,7 +89,7 @@ public class OrderController {
     @DeleteMapping("/deleteOrder/{id}")
     public RespBean deleteOrder(@PathVariable("id") Integer id){
         RespBean respBean=null;
-        Boolean i=orderService.removeById(id);
+        Boolean i= orderListService.removeById(id);
         if (!i){
             respBean=RespBean.error("删除失败");
         }else {
@@ -98,5 +97,4 @@ public class OrderController {
         }
         return respBean;
     }
-
 }

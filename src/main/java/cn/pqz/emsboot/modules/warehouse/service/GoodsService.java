@@ -1,7 +1,7 @@
 package cn.pqz.emsboot.modules.warehouse.service;
 
 import cn.pqz.emsboot.modules.output.entity.OrderList;
-import cn.pqz.emsboot.modules.output.mapper.OrderMapper;
+import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
 import cn.pqz.emsboot.modules.warehouse.entity.Warehouse;
 import cn.pqz.emsboot.modules.warehouse.entity.WarehouseGoods;
@@ -25,7 +25,7 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
     @Autowired
     private WarehouseGoodsMapper warehouseGoodsMapper;
     @Autowired
-    private OrderMapper orderMapper;
+    private OrderListMapper orderListMapper;
     @Autowired
     private WarehouseMapper warehouseMapper;
 
@@ -70,10 +70,10 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
             if (!good.getOrderNum().equals("")){
                 QueryWrapper queryWrapper=new QueryWrapper();
                 queryWrapper.eq("orderNum",good.getOrderNum());
-                OrderList order=orderMapper.selectOne(queryWrapper);
+                OrderList order= orderListMapper.selectOne(queryWrapper);
                 order.setTransport(true);
                 order.setOrderState(7);
-                orderMapper.updateById(order);
+                orderListMapper.updateById(order);
             }
             //更新货物表
             good.setExpCode(expCode);
