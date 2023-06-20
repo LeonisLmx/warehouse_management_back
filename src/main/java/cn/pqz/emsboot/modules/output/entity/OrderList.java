@@ -23,4 +23,9 @@ public class OrderList implements Serializable {
     private String relationOrderId;
     private Integer orderType;
     private Long clientId;
+    private Date deliverTime;
+    private String deliverySubstation;
+    private String goodsContent;
+    private String content;
+    private String reason;
 }

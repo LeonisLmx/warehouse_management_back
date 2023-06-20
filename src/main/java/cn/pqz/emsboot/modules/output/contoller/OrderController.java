@@ -29,9 +29,9 @@ public class OrderController {
     @GetMapping("/orderList/")
     public RespBean orderList(@RequestParam("pageNum") Integer pageNum,
                               @RequestParam("size") Integer size,
-                              @RequestParam("query") String query,
-                              @RequestParam("orderNumber")String orderNumber,
-                              @RequestParam("orderState") Integer orderState){
+                              @RequestParam(value = "query",required = false) String query,
+                              @RequestParam(value = "orderNumber", required = false)String orderNumber,
+                              @RequestParam(value = "orderState", required = false) Integer orderState){
         JSONObject obj = new JSONObject();
         obj.put("data", orderListService.orderList(pageNum,size,query,orderNumber, orderState));
         obj.put("total", orderListService.count());

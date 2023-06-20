@@ -55,11 +55,11 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public void addOrder(OrderRequest orderRequest){
         OrderList order=new OrderList();
         BeanUtils.copyProperties(orderRequest, order);
-        order.setDate(new Date());
+        order.setDate(new Date(orderRequest.getTime()));
         order.setOrderNum(OrderNumUtil.GetRandom());
         order.setPay(false);
         order.setTransport(false);
-        order.setOrderState(1);
+        order.setOrderState(orderRequest.getOrderState() == null?1: order.getOrderState());
         orderListMapper.insert(order);
         Client_order co = new Client_order();
         co.setCid(orderRequest.getClientId().intValue());
