@@ -6,11 +6,13 @@ import cn.pqz.emsboot.modules.output.service.OrderListService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -31,11 +33,24 @@ public class OrderController {
                               @RequestParam("size") Integer size,
                               @RequestParam(value = "query",required = false) String query,
                               @RequestParam(value = "orderNumber", required = false)String orderNumber,
-                              @RequestParam(value = "orderState", required = false) Integer orderState){
+                              @RequestParam(value = "orderState", required = false) Integer orderState,
+                              @RequestParam(value = "orderType", required = false) Integer orderType){
         JSONObject obj = new JSONObject();
-        obj.put("data", orderListService.orderList(pageNum,size,query,orderNumber, orderState));
-        obj.put("total", orderListService.count());
+        IPage<OrderList> orderListIPage = orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType);
+        obj.put("data", orderListIPage.getRecords());
+        obj.put("total", orderListIPage.getTotal());
         return RespBean.ok("",obj);
+    }
+
+    @GetMapping("/list/")
+    public RespBean orderList(@RequestParam("pageNum") Integer pageNum,
+                              @RequestParam("size") Integer size,
+                              @RequestParam(value = "startTime",required = false) Long startTime,
+                              @RequestParam(value = "endTime", required = false) Long endTime,
+                              @RequestParam(value = "clientId", required = false) Long clientId,
+                              @RequestParam(value = "orderType", required = false) Integer orderType,
+                              @RequestParam(value = "operateId", required = false) Long operateId){
+        return RespBean.ok("", orderListService.orderList(pageNum,size,startTime,endTime, clientId, orderType, operateId));
     }
 
     /**
@@ -96,5 +111,19 @@ public class OrderController {
             respBean=RespBean.ok("删除成功");
         }
         return respBean;
+    }
+
+    @GetMapping("/aggregation/data")
+    public RespBean aggregationData(@RequestParam(value = "startTime", required = false)Long startTime,
+                                    @RequestParam(value = "endTime", required = false)Long endTime,
+                                    @RequestParam(value = "operateId", required = false)Long operateId){
+        List<Map<String, Object>> map = orderListService.aggregateData(startTime, endTime, operateId);
+        log.info("mapper result is {}",JSONObject.toJSONString(map));
+        return RespBean.ok("", map);
+    }
+
+    @GetMapping("/searchByOrderId")
+    public RespBean searchByOrderId(@RequestParam("orderId")String orderId){
+        return RespBean.ok("", orderListService.searchByOrderId(orderId));
     }
 }

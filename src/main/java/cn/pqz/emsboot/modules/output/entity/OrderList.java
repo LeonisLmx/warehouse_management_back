@@ -28,4 +28,6 @@ public class OrderList implements Serializable {
     private String goodsContent;
     private String content;
     private String reason;
+    private Integer operateId;
+    private String substation;
 }

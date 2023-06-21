@@ -64,8 +64,4 @@ public class UserService extends ServiceImpl<UserMapper,User> implements UserDet
         int i = userMapper.insert(user);
         return i;
     }
-
-    public static void main(String[] args) {
-        System.out.println(new BCryptPasswordEncoder().encode("123456"));
-    }
 }

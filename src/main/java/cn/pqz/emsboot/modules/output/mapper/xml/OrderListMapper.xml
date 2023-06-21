@@ -4,4 +4,19 @@
         <select id="getOrderByCid" resultType="cn.pqz.emsboot.modules.output.entity.OrderList">
         select o.* from order_list o,client_order co where o.id=co.oid and co.cid=#{id}
     </select>
+
+    <select id="aggregateData" resultType="map">
+        SELECT orderType,count(0) as nums,operateId,sum(price * count) as total from order_list
+        where 1 = 1
+        <if test="startTime != null">
+          and 'date' ge; #{startTime}
+        </if>
+        <if test="endTime != null">
+            and 'date' le; #{endTime}
+        </if>
+        <if test="operateId != null">
+            and operateId = #{operateId}
+        </if>
+        GROUP BY operateId,orderType
+    </select>
 </mapper>

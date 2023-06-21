@@ -1,15 +1,21 @@
 package cn.pqz.emsboot.modules.output.service;
 
 import cn.pqz.emsboot.component.util.OrderNumUtil;
+import cn.pqz.emsboot.component.util.UserUtil;
+import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.http.OrderRequest;
+import cn.pqz.emsboot.modules.output.http.OrderResponse;
 import cn.pqz.emsboot.modules.output.mapper.Client_orderMapper;
 import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
+import cn.pqz.emsboot.modules.sys.entity.User;
+import cn.pqz.emsboot.modules.sys.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sun.org.apache.xpath.internal.operations.Or;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
+import javax.annotation.Resource;
+import java.util.*;
 
 @Service
 @Transactional
@@ -27,10 +33,16 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     private OrderListMapper orderListMapper;
     @Autowired
     private Client_orderMapper client_orderMapper;
+    @Resource
+    private ClientService clientService;
+    @Resource
+    private UserMapper userMapper;
     /**
      * 订单分页查询
      */
-    public List<OrderList> orderList(Integer pageNum, Integer size, String query, String orderNumber, Integer orderState) {
+    public IPage<OrderList> orderList(Integer pageNum, Integer size,
+                                     String query, String orderNumber,
+                                     Integer orderState, Integer orderType) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(query)) {
             queryWrapper.like("name", query);
@@ -45,8 +57,52 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
                 queryWrapper.eq("orderState",0);
             }
         }
+        if (orderType != null){
+            queryWrapper.eq("orderType", orderType);
+        }
+        return orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
+    }
+
+    public Map<String,Object> orderList(Integer pageNum, Integer size,
+                                     Long startTime, Long endTime,
+                                     Long clientId, Integer orderType,
+                                     Long operateId) {
+        QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
+        if (startTime != null) {
+            queryWrapper.ge("date", new Date(startTime));
+        }
+        if (endTime != null){
+            queryWrapper.le("date", new Date(endTime));
+        }
+        if (clientId != null){
+            queryWrapper.eq("clientId", clientId);
+        }
+        if (orderType != null){
+            queryWrapper.eq("orderType", orderType);
+        }
+        if (operateId != null){
+            queryWrapper.eq("operateId", operateId);
+        }
         IPage<OrderList> page = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
-        return page.getRecords();
+        List<OrderResponse> list = new ArrayList<>();
+        for (OrderList record : page.getRecords()) {
+            OrderResponse orderResponse = new OrderResponse();
+            BeanUtils.copyProperties(record, orderResponse);
+            Client client = clientService.getClientById(orderResponse.getClientId());
+            if (client != null) {
+                orderResponse.setClientName(client.getName());
+                orderResponse.setPhone(client.getPhone());
+            }
+            User user = userMapper.selectById(record.getOperateId());
+            if (user != null) {
+                orderResponse.setOperateName(user.getName());
+            }
+            list.add(orderResponse);
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("data",list);
+        map.put("total",page.getTotal());
+        return map;
     }
     /**
      * 添加订单
@@ -60,10 +116,36 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         order.setPay(false);
         order.setTransport(false);
         order.setOrderState(orderRequest.getOrderState() == null?1: order.getOrderState());
+        User user = UserUtil.getCurrentUser();
+        order.setOperateId(user.getId());
         orderListMapper.insert(order);
         Client_order co = new Client_order();
         co.setCid(orderRequest.getClientId().intValue());
         co.setOid(order.getId());
         client_orderMapper.insert(co);
+    }
+
+    public List<Map<String,Object>> aggregateData(Long startTime, Long endTime, Long operateId){
+        QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
+        if (startTime != null){
+            queryWrapper.ge("date",startTime);
+        }
+        if (endTime != null){
+            queryWrapper.le("date",endTime);
+        }
+        return orderListMapper.aggregateData(startTime == null ? null : new Date(startTime),
+                endTime == null ? null : new Date(endTime), operateId);
+    }
+
+    public Map<String,Object> searchByOrderId(String orderId){
+        QueryWrapper<OrderList> queryWrapper = new QueryWrapper<OrderList>().eq("orderNum",orderId);
+        Map<String,Object> map = new HashMap<>();
+        OrderList orderList = orderListMapper.selectOne(queryWrapper);
+        if (orderList != null){
+            Client client = clientService.getClientById(orderList.getClientId());
+            map.put("order",orderList);
+            map.put("client",client);
+        }
+        return map;
     }
 }
