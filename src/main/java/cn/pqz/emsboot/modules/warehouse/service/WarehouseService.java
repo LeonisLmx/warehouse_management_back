@@ -1,6 +1,7 @@
 package cn.pqz.emsboot.modules.warehouse.service;
 
 import cn.pqz.emsboot.component.util.GoodsNumUtil;
+import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.entity.Transition;
@@ -295,146 +296,12 @@ public class WarehouseService extends ServiceImpl<WarehouseMapper, Warehouse> {
      * 入库
      */
     @Transactional(rollbackFor = Exception.class)
-    public RespBean enter(JSONObject json) {
-        //获取数据
-        RespBean respBean = null;
-        Boolean b = true;
-        Integer tid = json.getInteger("tid");
-        String num = GoodsNumUtil.GetRandom();
-        String orderNum = json.getString("orderNum");
-        String name = json.getString("name");
-        Double count = json.getDouble("countQ");
-        Integer type = json.getInteger("type");
-        Double used1 = json.getDouble("area1");
-        Double used2 = json.getDouble("area2");
-        String operator=json.getString("operator");
-        String lids = json.getString("lid");
-        String arr[] = lids.split(",");
-        Integer[] lid = new Integer[arr.length];
-        try{
-            for (int i = 0; i < arr.length; i++) {
-                lid[i] = Integer.parseInt(arr[i]);
-            }
-            Integer cid = null;
-            if (orderNum.equals("自主生产")) {
-                cid = 0;
-                orderNum = "";
-            } else {
-                QueryWrapper queryWrapper = new QueryWrapper();
-                queryWrapper.eq("orderNum", orderNum);
-                OrderList order = orderListMapper.selectOne(queryWrapper);
-                QueryWrapper qu = new QueryWrapper();
-                qu.eq("oid", order.getId());
-                Client_order co = client_orderMapper.selectOne(qu);
-                cid = co.getCid();
-                order.setOrderState(5);
-                orderListMapper.updateById(order);//order状态更新成功;
-            }
-//        logger.info("----------数据获取成功---------");
-            //存入goods
-            Goods goods = new Goods();
-            goods.setNum(num);
-            goods.setOrderNum(orderNum);
-            goods.setName(name);
-            goods.setCount(count);
-            goods.setClientId(cid);
-            goods.setType(type);
-            goods.setDate(new Date());
-            goods.setOperator(operator);
-            int i = goodsMapper.insert(goods);
-            Integer gid = goods.getId();
-//        logger.info("--------存入goods成功---------");
-            if (i == 1) {
-                Zero(tid);
-//            logger.info("---------所属仓库已清理----------");
-                QueryWrapper queryWrapper = new QueryWrapper();
-                queryWrapper.eq("tid", tid);
-                int i1 = warehouseTransitionMapper.delete(queryWrapper);
-//            logger.info("----------warehouseTransition数据删除成功");
-                if (i1 != 0) {
-//                logger.info("----------开始warehouseGoods插入");
-                    //存储数据
-                    WarehouseGoods wg = new WarehouseGoods();
-                    if (lid.length == 1) {
-                        Warehouse w = warehouseMapper.selectById(lid[0]);
-                        if (w.getCapacity() < w.getUsed() + used1) {
-                            respBean = RespBean.error("存储已达上限,存储失败");
-                            b = false;
-                        } else {
-                            wg.setGid(gid);
-                            wg.setWid(lid[0]);
-                            wg.setUsed(used1);
-                            warehouseGoodsMapper.insert(wg);
-//                        logger.info("----------warehouseGoods插入成功");
-                        }
-                    } else {
-                        for (int n = 0; n < lid.length - 1; n++) {
-                            Warehouse w = warehouseMapper.selectById(lid[n]);
-                            if (w.getCapacity() < w.getUsed() + 10) {
-                                respBean = RespBean.error("存储已达上限,存储失败");
-                                b = false;
-                            } else {
-                                wg.setGid(gid);
-                                wg.setWid(lid[n]);
-                                wg.setUsed(10.00);
-                                warehouseGoodsMapper.insert(wg);
-                                //                            logger.info("----------warehouseGoods插入成功");
-                            }
-                        }
-                        Warehouse w = warehouseMapper.selectById(lid[lid.length - 1]);
-                        if (w.getCapacity() < w.getUsed() + used1 % 10) {
-                            respBean = RespBean.error("存储已达上限,存储失败");
-                            b = false;
-                        } else {
-                            if (used1%10==0){
-                                wg.setUsed(10.00);
-                            }else {
-                                wg.setUsed(used1 % 10);//分两种情况；
-                            }
-                            wg.setGid(gid);
-                            wg.setWid(lid[lid.length - 1]);
-                            warehouseGoodsMapper.insert(wg);
-                            //                        logger.info("----------warehouseGoods插入成功");
-                        }
-                    }
-                    if (b) {
-                        try{
-                            updateWarehouse(lid, used1);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                            respBean=RespBean.error("仓库容量更新失败");
-                            b=false;
-                        }
-
-                    }
-                    if (b) {
-                        try{
-                            Warehouse warehouse = warehouseMapper.selectById(58);//废品库
-                            warehouse.setUsed(warehouse.getUsed() + used2);
-                            warehouse.setPercentage(warehouse.getUsed() / warehouse.getCapacity() * 100);
-                            warehouseMapper.updateById(warehouse);
-                        }catch (Exception e){
-                            e.printStackTrace();
-                            respBean=RespBean.error("废品处理失败");
-                            b=false;
-                        }
-                    }
-                    if (b) {
-                        Transition transition = transitionMapper.selectById(tid);
-                        transition.setState(3);
-                        transitionMapper.updateById(transition);
-                        respBean=RespBean.ok("存储成功");
-                    }
-
-                }
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            respBean=RespBean.error("存储失败");
-        }
-
-
-        return respBean;
+    public RespBean enter(Goods goods) {
+        goods.setDate(new Date());
+        goods.setRemainCount(goods.getCount());
+        goods.setOperator(UserUtil.getCurrentUser().getUsername());
+        int i = goodsMapper.insert(goods);
+        return RespBean.ok("录入成功");
     }
 
     /**

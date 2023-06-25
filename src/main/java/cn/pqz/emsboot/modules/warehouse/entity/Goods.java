@@ -13,7 +13,9 @@ public class Goods implements Serializable {
     private String num;
     private String orderNum;
     private String name;
+    private String codeName;
     private Double count;
+    private Double remainCount;
     /**
      * 入库类型
      */

@@ -1,7 +1,9 @@
 package cn.pqz.emsboot.modules.output.service;
 
 import cn.pqz.emsboot.component.util.OrderNumUtil;
+import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
+import cn.pqz.emsboot.modules.finance.service.FinanceService;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -37,6 +39,8 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     private ClientService clientService;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private FinanceService financeService;
     /**
      * 订单分页查询
      */
@@ -115,7 +119,14 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         order.setOrderNum(OrderNumUtil.GetRandom());
         order.setPay(false);
         order.setTransport(false);
-        order.setOrderState(orderRequest.getOrderState() == null?1: order.getOrderState());
+        if (orderRequest.isChecked()){
+            order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
+            // 和供应商添加财务关系
+            financeService.addRecord(3, orderRequest.getPrice().longValue(),-1);
+        }else {
+            order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
+        }
+        financeService.addRecord(1, orderRequest.getPrice().longValue(),1);
         User user = UserUtil.getCurrentUser();
         order.setOperateId(user.getId());
         orderListMapper.insert(order);
@@ -147,5 +158,16 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             map.put("client",client);
         }
         return map;
+    }
+
+    public int updateOrderState(OrderStateEnum orderStateEnum, String orderNum){
+        OrderList orderList = new OrderList();
+        orderList.setOrderState(orderStateEnum.getCode());
+        return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+    }
+
+    public List<OrderList> queryInvoiceList(){
+        QueryWrapper<OrderList> queryWrapper = new QueryWrapper<OrderList>().eq("invoiceEnabled",true);
+        return orderListMapper.selectList(queryWrapper);
     }
 }

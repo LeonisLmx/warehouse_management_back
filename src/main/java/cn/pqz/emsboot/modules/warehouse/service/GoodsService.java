@@ -1,7 +1,12 @@
 package cn.pqz.emsboot.modules.warehouse.service;
 
+import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
+import cn.pqz.emsboot.modules.output.entity.OutputGoodsLog;
 import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
+import cn.pqz.emsboot.modules.output.mapper.OutputGoodsLogMapper;
+import cn.pqz.emsboot.modules.output.service.OrderListService;
+import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
 import cn.pqz.emsboot.modules.warehouse.entity.Warehouse;
 import cn.pqz.emsboot.modules.warehouse.entity.WarehouseGoods;
@@ -15,7 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -28,13 +36,25 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
     private OrderListMapper orderListMapper;
     @Autowired
     private WarehouseMapper warehouseMapper;
+    @Resource
+    private OutputGoodsLogMapper outputGoodsLogMapper;
+    @Resource
+    private OrderListService orderListService;
 
     private final Logger logger=Logger.getLogger(GoodsService.class);
 
 
-    public List<Goods> enterList(){
-        return goodsMapper.enterList();
+    public List<Goods> enterList(Long startTime, Long endTime){
+        QueryWrapper<Goods> queryWrapper = new QueryWrapper<>();
+        if ( startTime != null) {
+            queryWrapper.ge("date", new Date(startTime));
+        }
+        if (endTime != null) {
+            queryWrapper.le("date", new Date(endTime));
+        }
+        return goodsMapper.selectList(queryWrapper);
     }
+
     public String[] goodsPosition(Integer gid){
         QueryWrapper queryWrapper=new QueryWrapper();
         queryWrapper.eq("gid",gid);
@@ -109,5 +129,32 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
             } while (warehouse.getParentId() != 0);
             warehouseGoodsMapper.deleteById(id);
         }
+    }
+
+
+    public List<OutputGoodsLog> searchByOrders(String id){
+        return outputGoodsLogMapper.selectList(new QueryWrapper<OutputGoodsLog>().eq("goodsId",id));
+    }
+
+    public RespBean goodsOut(Long goodsId, String orderNum, Long orderCount){
+        Double count = goodsMapper.selectOne(new QueryWrapper<Goods>().eq("id",goodsId)).getRemainCount();
+        if (count < orderCount){
+            return RespBean.error("货物数量不足");
+        }
+        OutputGoodsLog log = new OutputGoodsLog();
+        log.setGoodsId(goodsId);
+        log.setOrderNum(orderNum);
+        log.setCreateTime(new Date());
+        outputGoodsLogMapper.insert(log);
+        // 更新订单状态
+        orderListService.updateOrderState(OrderStateEnum.ORDER_WAREHOUSE, orderNum);
+        Goods goods = new Goods();
+        goods.setRemainCount(count - orderCount);
+        goodsMapper.update(goods, new QueryWrapper<Goods>().eq("id",goodsId));
+        return RespBean.ok("操作成功");
+    }
+
+    public List<Map<String,Object>> check(){
+        return goodsMapper.list();
     }
 }

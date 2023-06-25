@@ -13,6 +13,8 @@ public class OrderRequest extends OrderList {
 
     private Long time;
 
+    private boolean checked;
+
     public Long getTime() {
         return time == null?System.currentTimeMillis():time;
     }

@@ -6,6 +6,7 @@ import cn.pqz.emsboot.modules.warehouse.entity.Goods;
 import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +19,11 @@ public class GoodsController {
     private GoodsService goodsService;
 
     @GetMapping("/enterList")
-    public RespBean enterList() {
+    public RespBean enterList(@RequestParam(value = "startTime", required = false)Long startTime,
+                              @RequestParam(value = "endTime", required = false)Long endTime) {
         RespBean respBean = null;
         try {
-            List<Goods> enterList = goodsService.enterList();
+            List<Goods> enterList = goodsService.enterList(startTime, endTime);
             respBean = RespBean.ok("", enterList);
         } catch (Exception e) {
             e.printStackTrace();
@@ -53,34 +55,19 @@ public class GoodsController {
 
     @PostMapping("/ship")
     public RespBean ship(@RequestBody JSONObject json) {
-        RespBean respBean = null;
-        KdniaoTrackQueryAPI api = new KdniaoTrackQueryAPI();
-        String expCode = json.getString("expCode");
-        String expNo = json.getString("expNo");
-        try {
-            String result = api.getOrderTracesByJson(expCode, expNo);
-            respBean = RespBean.ok("", result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            respBean = RespBean.error("物流信息查询失败");
-        }
-        return respBean;
+        String goodsId = json.getString("goodsId");
+        return RespBean.ok("", goodsService.searchByOrders(goodsId));
     }
 
     @PutMapping("/out")
     public RespBean out(@RequestBody JSONObject json) {
-        RespBean respBean = null;
-        Integer id = json.getInteger("id");
-        String expCode = json.getString("expCode");
-        String expNo = json.getString("expNo");
-        Boolean b = goodsService.out(id, expCode, expNo);
-        if (b) {
-            respBean = RespBean.ok("出库成功");
-        } else {
-            respBean = RespBean.error("出库失败");
-        }
+        Long goodsId = json.getLong("goodsId");
+        String orders = json.getString("orders");
+        return goodsService.goodsOut(goodsId, orders.split("-")[0], Long.parseLong(orders.split("-")[1]));
+    }
 
-
-        return respBean;
+    @GetMapping("/check")
+    public RespBean check(){
+        return RespBean.ok("", goodsService.check());
     }
 }

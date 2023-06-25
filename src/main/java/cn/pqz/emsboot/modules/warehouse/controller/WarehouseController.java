@@ -2,6 +2,7 @@ package cn.pqz.emsboot.modules.warehouse.controller;
 
 import cn.pqz.emsboot.modules.output.entity.Transition;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
+import cn.pqz.emsboot.modules.warehouse.entity.Goods;
 import cn.pqz.emsboot.modules.warehouse.entity.Position;
 import cn.pqz.emsboot.modules.warehouse.entity.Warehouse;
 import cn.pqz.emsboot.modules.warehouse.service.WarehouseService;
@@ -216,12 +217,11 @@ public class WarehouseController {
 
     /**
      * 入库
-     * @param json
      * @return
      */
     @PostMapping("/enter")
-    public RespBean enter(@RequestBody JSONObject json){
-        RespBean respBean=warehouseService.enter(json);
+    public RespBean enter(@RequestBody Goods goods){
+        RespBean respBean = warehouseService.enter(goods);
         return respBean;
     }
 

@@ -18,8 +18,4 @@
             <result property="phone" column="phone"/>
         </collection>
     </resultMap>
-    <select id="enterList" resultMap="EnterListMap">
-        select g.id ,g.num,g.orderNum,g.operator,g.name as name1,g.count,g.type,g.date as date,g.expCode,g.expNo,g.ship,
-        c.name as name2,c.phone from goods g LEFT join client c on g.clientId=c.id
-    </select>
 </mapper>

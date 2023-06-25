@@ -1,5 +1,6 @@
 package cn.pqz.emsboot.modules.output.contoller;
 
+import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.http.OrderRequest;
 import cn.pqz.emsboot.modules.output.service.OrderListService;
@@ -125,5 +126,16 @@ public class OrderController {
     @GetMapping("/searchByOrderId")
     public RespBean searchByOrderId(@RequestParam("orderId")String orderId){
         return RespBean.ok("", orderListService.searchByOrderId(orderId));
+    }
+
+    /**
+     * 修改订单状态
+     * @param orderList
+     * @return
+     */
+    @PostMapping("/stateUpdate")
+    public RespBean orderStateUpdate(@RequestBody OrderList orderList){
+        return RespBean.ok("修改订单状态成功", orderListService.updateOrderState(
+                OrderStateEnum.parseState(orderList.getOrderState()), orderList.getOrderNum()));
     }
 }
