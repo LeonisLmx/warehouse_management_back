@@ -29,5 +29,6 @@ public class OrderList implements Serializable {
     private String content;
     private String reason;
     private Integer operateId;
-    private String substation;
+    private Long substationId;
+    private String expressName;
 }

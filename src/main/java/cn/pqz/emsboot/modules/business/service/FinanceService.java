@@ -1,7 +1,7 @@
-package cn.pqz.emsboot.modules.finance.service;
+package cn.pqz.emsboot.modules.business.service;
 
-import cn.pqz.emsboot.modules.finance.entity.Finance;
-import cn.pqz.emsboot.modules.finance.mapper.FinanceMapper;
+import cn.pqz.emsboot.modules.business.entity.Finance;
+import cn.pqz.emsboot.modules.business.mapper.FinanceMapper;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Service;

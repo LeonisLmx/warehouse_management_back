@@ -1,6 +1,6 @@
-package cn.pqz.emsboot.modules.finance.mapper;
+package cn.pqz.emsboot.modules.business.mapper;
 
-import cn.pqz.emsboot.modules.finance.entity.Finance;
+import cn.pqz.emsboot.modules.business.entity.Finance;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 

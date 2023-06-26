@@ -50,8 +50,9 @@ public class OrderController {
                               @RequestParam(value = "endTime", required = false) Long endTime,
                               @RequestParam(value = "clientId", required = false) Long clientId,
                               @RequestParam(value = "orderType", required = false) Integer orderType,
-                              @RequestParam(value = "operateId", required = false) Long operateId){
-        return RespBean.ok("", orderListService.orderList(pageNum,size,startTime,endTime, clientId, orderType, operateId));
+                              @RequestParam(value = "operateId", required = false) Long operateId,
+                              @RequestParam(value = "orderState", required = false) Integer orderState){
+        return RespBean.ok("", orderListService.orderList(pageNum,size,startTime,endTime, clientId, orderType, operateId, orderState));
     }
 
     /**
@@ -137,5 +138,17 @@ public class OrderController {
     public RespBean orderStateUpdate(@RequestBody OrderList orderList){
         return RespBean.ok("修改订单状态成功", orderListService.updateOrderState(
                 OrderStateEnum.parseState(orderList.getOrderState()), orderList.getOrderNum()));
+    }
+
+    @PostMapping("/selectSubstation")
+    public RespBean selectSubstation(@RequestBody JSONObject jsonObject){
+        return RespBean.ok("分配站点成功", orderListService.updateSubstation(
+                jsonObject.getLong("substationId"),jsonObject.getString("orderNum")));
+    }
+
+    @PostMapping("/selectExpress")
+    public RespBean selectExpress(@RequestBody JSONObject jsonObject){
+        return RespBean.ok("分配站点成功", orderListService.updateExpress(
+                jsonObject.getString("expressName"),jsonObject.getString("orderNum")));
     }
 }

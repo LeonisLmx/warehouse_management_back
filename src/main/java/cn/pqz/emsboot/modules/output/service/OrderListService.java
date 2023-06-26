@@ -3,7 +3,7 @@ package cn.pqz.emsboot.modules.output.service;
 import cn.pqz.emsboot.component.util.OrderNumUtil;
 import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
-import cn.pqz.emsboot.modules.finance.service.FinanceService;
+import cn.pqz.emsboot.modules.business.service.FinanceService;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -17,11 +17,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,11 +53,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             queryWrapper.eq("orderNum", orderNumber);
         }
         if (orderState != null && orderState > 0){
-            if (orderState == 1){
-                queryWrapper.gt("orderState",1);
-            }else{
-                queryWrapper.eq("orderState",0);
-            }
+            queryWrapper.eq("orderState",orderState);
         }
         if (orderType != null){
             queryWrapper.eq("orderType", orderType);
@@ -70,7 +64,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      Long startTime, Long endTime,
                                      Long clientId, Integer orderType,
-                                     Long operateId) {
+                                     Long operateId, Integer orderState) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
         if (startTime != null) {
             queryWrapper.ge("date", new Date(startTime));
@@ -86,6 +80,9 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         }
         if (operateId != null){
             queryWrapper.eq("operateId", operateId);
+        }
+        if (orderState != null){
+            queryWrapper.eq("orderState", orderState);
         }
         IPage<OrderList> page = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
         List<OrderResponse> list = new ArrayList<>();
@@ -163,6 +160,20 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public int updateOrderState(OrderStateEnum orderStateEnum, String orderNum){
         OrderList orderList = new OrderList();
         orderList.setOrderState(orderStateEnum.getCode());
+        return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+    }
+
+    public int updateSubstation(Long substationId, String orderNum){
+        OrderList orderList = new OrderList();
+        orderList.setSubstationId(substationId);
+        orderList.setOrderState(OrderStateEnum.ORDER_WAREHOUSE.getCode());
+        return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+    }
+
+    public int updateExpress(String expressName, String orderNum){
+        OrderList orderList = new OrderList();
+        orderList.setExpressName(expressName);
+        orderList.setOrderState(OrderStateEnum.ALLOCATION_OUT_STORAGE.getCode());
         return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
     }
 

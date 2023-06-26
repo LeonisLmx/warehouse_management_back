@@ -1,6 +1,6 @@
-package cn.pqz.emsboot.modules.finance.controller;
+package cn.pqz.emsboot.modules.business.controller;
 
-import cn.pqz.emsboot.modules.finance.service.FinanceService;
+import cn.pqz.emsboot.modules.business.service.FinanceService;
 import cn.pqz.emsboot.modules.output.service.OrderListService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import org.springframework.web.bind.annotation.GetMapping;

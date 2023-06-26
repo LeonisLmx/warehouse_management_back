@@ -1,4 +1,4 @@
-package cn.pqz.emsboot.modules.finance.entity;
+package cn.pqz.emsboot.modules.business.entity;
 
 import lombok.Data;
 
