@@ -18,7 +18,9 @@ public enum OrderStateEnum {
     ORDER_WAIT_ALLOCATION(6,"待分配"),
     ALLOCATION_OUT_STORAGE(7,"配送出库"),
     DELIVERY_GOOD(8,"领货配送"),
-    FINISH(9,"回执录入");
+    FINISH(9,"回执录入"),
+    PORTION_FINISH(10,"部分完成"),
+    FAIL(11,"失败");
 
     private int code;
     private String description;

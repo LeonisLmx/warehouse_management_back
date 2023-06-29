@@ -31,4 +31,6 @@ public class OrderList implements Serializable {
     private Integer operateId;
     private Long substationId;
     private String expressName;
+    private Long customerSatisfaction;
+    private Date updateTime;
 }

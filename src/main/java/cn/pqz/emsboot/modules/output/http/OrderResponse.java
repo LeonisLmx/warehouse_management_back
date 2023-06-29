@@ -34,5 +34,11 @@ public class OrderResponse {
 
     private Date date;
 
-    private String substation;
+    private Long substationId;
+
+    private String expressName;
+
+    private String address;
+
+    private Date updateTime;
 }

@@ -45,6 +45,12 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public IPage<OrderList> orderList(Integer pageNum, Integer size,
                                      String query, String orderNumber,
                                      Integer orderState, Integer orderType) {
+        return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState), String.valueOf(orderType));
+    }
+
+    public IPage<OrderList> orderList(Integer pageNum, Integer size,
+                                      String query, String orderNumber,
+                                      String orderState, String orderType) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(query)) {
             queryWrapper.like("name", query);
@@ -52,11 +58,11 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (StringUtils.isNotBlank(orderNumber)){
             queryWrapper.eq("orderNum", orderNumber);
         }
-        if (orderState != null && orderState > 0){
-            queryWrapper.eq("orderState",orderState);
+        if (StringUtils.isNotBlank(orderState)){
+            queryWrapper.in("orderState", Arrays.asList(orderState.split(",")));
         }
-        if (orderType != null){
-            queryWrapper.eq("orderType", orderType);
+        if (StringUtils.isNotBlank(orderType)){
+            queryWrapper.in("orderType", Arrays.asList(orderType.split(",")));
         }
         return orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
     }
@@ -64,7 +70,8 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      Long startTime, Long endTime,
                                      Long clientId, Integer orderType,
-                                     Long operateId, Integer orderState) {
+                                     Long operateId, Integer orderState,
+                                        String expressName) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
         if (startTime != null) {
             queryWrapper.ge("date", new Date(startTime));
@@ -84,6 +91,9 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (orderState != null){
             queryWrapper.eq("orderState", orderState);
         }
+        if (StringUtils.isNotBlank(expressName)){
+            queryWrapper.eq("expressName", expressName);
+        }
         IPage<OrderList> page = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
         List<OrderResponse> list = new ArrayList<>();
         for (OrderList record : page.getRecords()) {
@@ -93,6 +103,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             if (client != null) {
                 orderResponse.setClientName(client.getName());
                 orderResponse.setPhone(client.getPhone());
+                orderResponse.setAddress(client.getAddress());
             }
             User user = userMapper.selectById(record.getOperateId());
             if (user != null) {
@@ -174,6 +185,13 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         OrderList orderList = new OrderList();
         orderList.setExpressName(expressName);
         orderList.setOrderState(OrderStateEnum.ALLOCATION_OUT_STORAGE.getCode());
+        return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+    }
+
+    public int updateCustomerSatisfaction(Long customerSatisfaction,Integer code, String orderNum){
+        OrderList orderList = new OrderList();
+        orderList.setCustomerSatisfaction(customerSatisfaction);
+        orderList.setOrderState(code);
         return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
     }
 

@@ -19,4 +19,8 @@
         </if>
         GROUP BY operateId,orderType
     </select>
+
+    <select id="getAllExpressName" resultType="String">
+        select distinct expressName from order_list where orderState in (7,8,9)
+    </select>
 </mapper>

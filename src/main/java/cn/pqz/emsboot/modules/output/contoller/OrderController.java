@@ -34,8 +34,8 @@ public class OrderController {
                               @RequestParam("size") Integer size,
                               @RequestParam(value = "query",required = false) String query,
                               @RequestParam(value = "orderNumber", required = false)String orderNumber,
-                              @RequestParam(value = "orderState", required = false) Integer orderState,
-                              @RequestParam(value = "orderType", required = false) Integer orderType){
+                              @RequestParam(value = "orderState", required = false) String orderState,
+                              @RequestParam(value = "orderType", required = false) String orderType){
         JSONObject obj = new JSONObject();
         IPage<OrderList> orderListIPage = orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType);
         obj.put("data", orderListIPage.getRecords());
@@ -51,8 +51,10 @@ public class OrderController {
                               @RequestParam(value = "clientId", required = false) Long clientId,
                               @RequestParam(value = "orderType", required = false) Integer orderType,
                               @RequestParam(value = "operateId", required = false) Long operateId,
-                              @RequestParam(value = "orderState", required = false) Integer orderState){
-        return RespBean.ok("", orderListService.orderList(pageNum,size,startTime,endTime, clientId, orderType, operateId, orderState));
+                              @RequestParam(value = "orderState", required = false) Integer orderState,
+                              @RequestParam(value = "expressName", required = false) String expressName){
+        return RespBean.ok("", orderListService.orderList(
+                pageNum,size,startTime,endTime, clientId, orderType, operateId, orderState, expressName));
     }
 
     /**
@@ -140,15 +142,38 @@ public class OrderController {
                 OrderStateEnum.parseState(orderList.getOrderState()), orderList.getOrderNum()));
     }
 
+    /**
+     * 分配站点
+     * @param jsonObject
+     * @return
+     */
     @PostMapping("/selectSubstation")
     public RespBean selectSubstation(@RequestBody JSONObject jsonObject){
         return RespBean.ok("分配站点成功", orderListService.updateSubstation(
                 jsonObject.getLong("substationId"),jsonObject.getString("orderNum")));
     }
 
+    /**
+     * 选择快递员
+     * @param jsonObject
+     * @return
+     */
     @PostMapping("/selectExpress")
     public RespBean selectExpress(@RequestBody JSONObject jsonObject){
-        return RespBean.ok("分配站点成功", orderListService.updateExpress(
+        return RespBean.ok("分配快递员成功", orderListService.updateExpress(
                 jsonObject.getString("expressName"),jsonObject.getString("orderNum")));
+    }
+
+    /**
+     * 回执录入
+     * @param jsonObject
+     * @return
+     */
+    @PostMapping("/receipt")
+    public RespBean receipt(@RequestBody JSONObject jsonObject){
+        return RespBean.ok("回执录入成功", orderListService.updateCustomerSatisfaction(
+                jsonObject.getLong("customerSatisfaction"),
+                jsonObject.getInteger("code"),
+                jsonObject.getString("orderNum")));
     }
 }

@@ -16,4 +16,6 @@ public interface OrderListMapper extends BaseMapper<OrderList> {
     List<Map<String,Object>> aggregateData(@Param("startTime") Date startTime,
                                            @Param("endTime")Date endTime,
                                            @Param("operateId")Long operateId);
+
+    List<String> getAllExpressName();
 }
