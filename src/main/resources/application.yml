@@ -23,7 +23,7 @@ spring:
     database: 0
     host: 127.0.0.1
     port: 6379
-    password:
+    password: 123456
     jedis:
       pool:
         max-idle: 8   #连接池中最大空闲连接
