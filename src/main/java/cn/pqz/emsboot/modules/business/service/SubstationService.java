@@ -93,4 +93,13 @@ public class SubstationService {
         substation.setParentId(parentId);
         substationMapper.insert(substation);
     }
+
+    public StringBuilder getFullSubstationInfo(Long substationId, StringBuilder sb){
+        if (substationId == 0){
+            return sb;
+        }
+        Substation substation = substationMapper.selectById(substationId);
+        sb.insert(0,substation.getName()).insert(0,"/");
+        return getFullSubstationInfo(substation.getParentId(), sb);
+    }
 }

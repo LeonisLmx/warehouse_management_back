@@ -20,6 +20,8 @@ public class SupplierGoods {
 
     private String measurement;
 
+    private Integer count;
+
     private BigDecimal originPrice;
 
     private String discount;

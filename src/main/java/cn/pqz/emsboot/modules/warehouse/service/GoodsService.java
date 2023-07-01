@@ -1,6 +1,8 @@
 package cn.pqz.emsboot.modules.warehouse.service;
 
+import cn.pqz.emsboot.component.util.OrderNumUtil;
 import cn.pqz.emsboot.component.util.OrderStateEnum;
+import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.business.entity.Substation;
 import cn.pqz.emsboot.modules.business.service.SubstationService;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -9,10 +11,13 @@ import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.output.mapper.OutputGoodsLogMapper;
 import cn.pqz.emsboot.modules.output.service.OrderListService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
+import cn.pqz.emsboot.modules.sys.entity.User;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
+import cn.pqz.emsboot.modules.warehouse.entity.SupplierGoods;
 import cn.pqz.emsboot.modules.warehouse.entity.Warehouse;
 import cn.pqz.emsboot.modules.warehouse.entity.WarehouseGoods;
 import cn.pqz.emsboot.modules.warehouse.mapper.GoodsMapper;
+import cn.pqz.emsboot.modules.warehouse.mapper.SupplierGoodsMapper;
 import cn.pqz.emsboot.modules.warehouse.mapper.WarehouseGoodsMapper;
 import cn.pqz.emsboot.modules.warehouse.mapper.WarehouseMapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -46,6 +51,9 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     @Resource
     private SubstationService substationService;
+
+    @Resource
+    private SupplierGoodsMapper supplierGoodsMapper;
 
     private final Logger logger=Logger.getLogger(GoodsService.class);
 
@@ -174,5 +182,26 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
             res = goodsMapper.list(substationId);
         }
         return res;
+    }
+
+    public Integer supplierGoodsEnter(SupplierGoods supplierGoods, Long substationId) {
+        Goods goods = new Goods();
+        goods.setSubstationId(substationId);
+        goods.setCount(supplierGoods.getCount().doubleValue());
+        goods.setName(supplierGoods.getGoodsName());
+        goods.setCodeName(supplierGoods.getCode());
+        goods.setType(1);
+        goods.setDate(supplierGoods.getDate());
+        goods.setRemainCount(goods.getCount());
+        goods.setSupplierName(supplierGoods.getSupplierName());
+        User user = UserUtil.getCurrentUser();
+        goods.setOrderNum(OrderNumUtil.GetRandom());
+        goods.setOperator(user.getName());
+        goodsMapper.insert(goods);
+        return goods.getId();
+    }
+
+    public Goods searchById(Long id){
+        return goodsMapper.selectById(id);
     }
 }

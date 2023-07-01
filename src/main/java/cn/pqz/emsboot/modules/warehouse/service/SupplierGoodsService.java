@@ -19,12 +19,15 @@ public class SupplierGoodsService {
     @Resource
     private WarehouseService warehouseService;
 
+    @Resource
+    private GoodsService goodsService;
+
     public List<SupplierGoods> list(){
         return supplierGoodsMapper.selectList(new QueryWrapper<>());
     }
 
-    public void insertGoods(SupplierGoods supplierGoods){
-        supplierGoodsMapper.insert(supplierGoods);
+    public int insertGoods(SupplierGoods supplierGoods){
+        return supplierGoodsMapper.insert(supplierGoods);
     }
 
     /**
@@ -32,13 +35,9 @@ public class SupplierGoodsService {
      * @param goodsId
      * @param id
      */
-    public void goodsEnterWarehouse(Long substationId, Long id){
-        SupplierGoods supplierGoods = supplierGoodsMapper.selectById(id);
-        Goods goods = new Goods();
-        warehouseService.enter();
+    public int goodsEnterWarehouse(Long substationId, Long id){
         SupplierGoods res = new SupplierGoods();
-        // todo 需要供应商货物的主键
-        res.setGoodsId(goods.getId().longValue());
-        supplierGoodsMapper.update(res, new QueryWrapper<SupplierGoods>().eq("id",id));
+        res.setGoodsId(goodsService.supplierGoodsEnter(supplierGoodsMapper.selectById(id), substationId).longValue());
+        return supplierGoodsMapper.update(res, new QueryWrapper<SupplierGoods>().eq("id",id));
     }
 }

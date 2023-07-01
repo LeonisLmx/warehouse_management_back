@@ -5,12 +5,14 @@ import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
 import cn.pqz.emsboot.modules.warehouse.entity.SupplierGoods;
 import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
+import cn.pqz.emsboot.modules.warehouse.service.SupplierGoodsService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @RestController
@@ -18,6 +20,9 @@ import java.util.List;
 public class GoodsController {
     @Autowired
     private GoodsService goodsService;
+
+    @Resource
+    private SupplierGoodsService supplierGoodsService;
 
     @GetMapping("/enterList")
     public RespBean enterList(@RequestParam(value = "startTime", required = false)Long startTime,
@@ -78,6 +83,19 @@ public class GoodsController {
      */
     @PostMapping("/enter")
     public RespBean enterGoods(@RequestBody SupplierGoods supplierGoods){
+        return RespBean.ok("供应商商品录入成功", supplierGoodsService.insertGoods(supplierGoods));
+    }
 
+    @GetMapping("/searchSupplierList")
+    public RespBean searchSupplierList(){
+        return RespBean.ok("", supplierGoodsService.list());
+    }
+
+    /**
+     * 供应商商品入仓库
+     */
+    @PostMapping("/goodsToWarehouse")
+    public RespBean goodsToWarehouse(@RequestBody JSONObject jsonObject){
+        return RespBean.ok("", supplierGoodsService.goodsEnterWarehouse(jsonObject.getLong("substationId"), jsonObject.getLong("id")));
     }
 }

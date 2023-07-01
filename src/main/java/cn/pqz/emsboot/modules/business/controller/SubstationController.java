@@ -2,6 +2,7 @@ package cn.pqz.emsboot.modules.business.controller;
 
 import cn.pqz.emsboot.modules.business.service.SubstationService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
+import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,9 @@ public class SubstationController {
 
     @Resource
     private SubstationService service;
+
+    @Resource
+    private GoodsService goodsService;
 
     @GetMapping("/list")
     public RespBean list(@RequestParam(value = "parentId",defaultValue = "0",required = false) Long parentId){
@@ -43,5 +47,12 @@ public class SubstationController {
     public RespBean add(@RequestBody JSONObject jsonObject){
         service.insertRecord(jsonObject.getString("name"), jsonObject.getLong("parentId"));
         return RespBean.ok("新增站点成功");
+    }
+
+    @GetMapping("/getFullSubstation")
+    public RespBean getFullSubstation(Long goodsId){
+        Long substationId = goodsService.searchById(goodsId).getSubstationId();
+        StringBuilder res = service.getFullSubstationInfo(substationId, new StringBuilder());
+        return RespBean.ok("", res.substring(1,res.length()));
     }
 }
