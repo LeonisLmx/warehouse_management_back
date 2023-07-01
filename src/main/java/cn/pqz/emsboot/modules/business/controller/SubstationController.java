@@ -20,8 +20,18 @@ public class SubstationController {
     private SubstationService service;
 
     @GetMapping("/list")
-    public RespBean list(){
-        return RespBean.ok("", service.list());
+    public RespBean list(@RequestParam(value = "parentId",defaultValue = "0",required = false) Long parentId){
+        return RespBean.ok("", service.listByParentId(parentId));
+    }
+
+        @GetMapping("/listCount")
+    public RespBean listCount(@RequestParam(value = "id",required = false) Long id){
+        return RespBean.ok("", service.listCount(id));
+    }
+
+    @GetMapping("/listAll")
+    public RespBean listAdd(){
+        return RespBean.ok("", service.listAll(0L));
     }
 
     @GetMapping("/search/{id}")
@@ -31,7 +41,7 @@ public class SubstationController {
 
     @PostMapping("/add")
     public RespBean add(@RequestBody JSONObject jsonObject){
-        service.insertRecord(jsonObject.getString("name"));
+        service.insertRecord(jsonObject.getString("name"), jsonObject.getLong("parentId"));
         return RespBean.ok("新增站点成功");
     }
 }

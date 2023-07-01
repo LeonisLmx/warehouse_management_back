@@ -3,6 +3,7 @@ package cn.pqz.emsboot.modules.warehouse.controller;
 import cn.pqz.emsboot.component.KdniaoApi.KdniaoTrackQueryAPI;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
+import cn.pqz.emsboot.modules.warehouse.entity.SupplierGoods;
 import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -67,7 +68,16 @@ public class GoodsController {
     }
 
     @GetMapping("/check")
-    public RespBean check(){
-        return RespBean.ok("", goodsService.check());
+    public RespBean check(Long substationId){
+        return RespBean.ok("", goodsService.check(substationId));
+    }
+
+    /**
+     * 供应商的商品录入
+     * @return
+     */
+    @PostMapping("/enter")
+    public RespBean enterGoods(@RequestBody SupplierGoods supplierGoods){
+
     }
 }

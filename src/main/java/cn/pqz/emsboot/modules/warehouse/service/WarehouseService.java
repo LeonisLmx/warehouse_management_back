@@ -299,6 +299,7 @@ public class WarehouseService extends ServiceImpl<WarehouseMapper, Warehouse> {
     public RespBean enter(Goods goods) {
         goods.setDate(new Date());
         goods.setRemainCount(goods.getCount());
+        goods.setType(1);
         goods.setOperator(UserUtil.getCurrentUser().getUsername());
         int i = goodsMapper.insert(goods);
         return RespBean.ok("录入成功");

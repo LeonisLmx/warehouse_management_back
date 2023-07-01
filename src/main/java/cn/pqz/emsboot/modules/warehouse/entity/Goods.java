@@ -40,4 +40,8 @@ public class Goods implements Serializable {
      * 是否出库
      */
     private Integer ship;
+
+    private Long substationId;
+
+    private String supplierName;
 }

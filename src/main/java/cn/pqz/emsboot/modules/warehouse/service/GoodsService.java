@@ -1,6 +1,8 @@
 package cn.pqz.emsboot.modules.warehouse.service;
 
 import cn.pqz.emsboot.component.util.OrderStateEnum;
+import cn.pqz.emsboot.modules.business.entity.Substation;
+import cn.pqz.emsboot.modules.business.service.SubstationService;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.entity.OutputGoodsLog;
 import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,9 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
     private OutputGoodsLogMapper outputGoodsLogMapper;
     @Resource
     private OrderListService orderListService;
+
+    @Resource
+    private SubstationService substationService;
 
     private final Logger logger=Logger.getLogger(GoodsService.class);
 
@@ -154,7 +160,19 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         return RespBean.ok("操作成功");
     }
 
-    public List<Map<String,Object>> check(){
-        return goodsMapper.list();
+    public List<Map<String,Object>> check(Long substationId){
+        Substation substation = substationService.getById(substationId);
+        List<Map<String,Object>> res = new ArrayList<>();
+        if (substation.getParentId() == 0){
+            // 说明是中心仓库，遍历结果
+            List<Map<String, Object>> list = substationService.listByParentId(substationId);
+            for (Map<String, Object> map : list) {
+                res.addAll(goodsMapper.list(Long.parseLong(map.get("id").toString())));
+            }
+            res.addAll(goodsMapper.list(substationId));
+        }else{
+            res = goodsMapper.list(substationId);
+        }
+        return res;
     }
 }
