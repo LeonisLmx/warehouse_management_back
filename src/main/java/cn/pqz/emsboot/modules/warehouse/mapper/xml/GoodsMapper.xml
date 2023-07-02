@@ -18,4 +18,14 @@
             <result property="phone" column="phone"/>
         </collection>
     </resultMap>
+
+    <select id="searchList" resultType="map">
+        select sg.*,s.name as supplierName  from goods sg  left join supplier s on sg.supplierId  = s.id where 1 = 1
+        <if test="startTime != null">
+        and sg.date &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+        and sg.date &lt;= #{endTime}
+        </if>
+    </select>
 </mapper>

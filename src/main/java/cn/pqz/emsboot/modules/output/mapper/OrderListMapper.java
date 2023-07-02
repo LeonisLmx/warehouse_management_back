@@ -4,6 +4,7 @@ import cn.pqz.emsboot.modules.output.entity.OrderList;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 import java.util.List;
@@ -18,4 +19,8 @@ public interface OrderListMapper extends BaseMapper<OrderList> {
                                            @Param("operateId")Long operateId);
 
     List<String> getAllExpressName();
+
+    List<Map<String, Object>> staticsOrders();
+
+    List<Map<String, Object>> querySupplierSettlement(@RequestParam("goodsId")Long goodsId);
 }

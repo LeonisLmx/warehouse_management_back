@@ -9,7 +9,7 @@ import java.util.Date;
 public class OrderList implements Serializable {
 
     private Integer id;
-    private String name;
+    private Long goodsId;
     private String orderNum;//订单号
     private Double price;//价格
     private Integer count;//数量

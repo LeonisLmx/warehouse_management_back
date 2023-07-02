@@ -43,5 +43,5 @@ public class Goods implements Serializable {
 
     private Long substationId;
 
-    private String supplierName;
+    private Long supplierId;
 }

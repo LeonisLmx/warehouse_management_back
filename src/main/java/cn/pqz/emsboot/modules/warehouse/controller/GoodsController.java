@@ -24,19 +24,15 @@ public class GoodsController {
     @Resource
     private SupplierGoodsService supplierGoodsService;
 
+    @GetMapping("/searchList")
+    public RespBean searchList(){
+        return RespBean.ok("", goodsService.searchList());
+    }
+
     @GetMapping("/enterList")
     public RespBean enterList(@RequestParam(value = "startTime", required = false)Long startTime,
                               @RequestParam(value = "endTime", required = false)Long endTime) {
-        RespBean respBean = null;
-        try {
-            List<Goods> enterList = goodsService.enterList(startTime, endTime);
-            respBean = RespBean.ok("", enterList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            respBean = RespBean.error("货物列表获取失败");
-
-        }
-        return respBean;
+        return RespBean.ok("", goodsService.enterList(startTime, endTime));
     }
 
     /**
@@ -97,5 +93,10 @@ public class GoodsController {
     @PostMapping("/goodsToWarehouse")
     public RespBean goodsToWarehouse(@RequestBody JSONObject jsonObject){
         return RespBean.ok("", supplierGoodsService.goodsEnterWarehouse(jsonObject.getLong("substationId"), jsonObject.getLong("id")));
+    }
+
+    @GetMapping("/staticsSupplierOrders")
+    public RespBean staticsSupplierOrders() {
+        return RespBean.ok("", supplierGoodsService.staticsOperates());
     }
 }

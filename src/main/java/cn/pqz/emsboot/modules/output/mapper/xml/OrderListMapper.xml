@@ -23,4 +23,15 @@
     <select id="getAllExpressName" resultType="String">
         select distinct expressName from order_list where orderState in (7,8,9)
     </select>
+
+    <select id="staticsOrders" resultType="map">
+        select s.name ,ol.substationId ,count(0) as counts,sum(ol.price * ol.count)  as totalPrice,sum(ol.count) as totalCount  from order_list ol left join substation s on ol.substationId  = s.id  where ol .substationId > 0 group by ol .substationId
+    </select>
+
+    <select id="querySupplierSettlement" resultType="map">
+        select g.name,sum(ol.count) as totalCount,sum(ol.count * ol.price) as totalPrice,ol.goodsId ,ol.orderType
+        from order_list ol
+        left join goods g on ol .goodsId = g.id  where ol.goodsId = #{goodsId}
+        group by ol.orderType
+    </select>
 </mapper>

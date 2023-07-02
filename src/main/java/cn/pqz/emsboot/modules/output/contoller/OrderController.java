@@ -36,11 +36,7 @@ public class OrderController {
                               @RequestParam(value = "orderNumber", required = false)String orderNumber,
                               @RequestParam(value = "orderState", required = false) String orderState,
                               @RequestParam(value = "orderType", required = false) String orderType){
-        JSONObject obj = new JSONObject();
-        IPage<OrderList> orderListIPage = orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType);
-        obj.put("data", orderListIPage.getRecords());
-        obj.put("total", orderListIPage.getTotal());
-        return RespBean.ok("",obj);
+        return RespBean.ok("", orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType));
     }
 
     @GetMapping("/list/")
@@ -175,5 +171,24 @@ public class OrderController {
                 jsonObject.getLong("customerSatisfaction"),
                 jsonObject.getInteger("code"),
                 jsonObject.getString("orderNum")));
+    }
+
+    /**
+     * 分站订单数据统计
+     * @return
+     */
+    @GetMapping("/staticsSubstationOrders")
+    public RespBean staticsSubstationOrders() {
+        return RespBean.ok("", orderListService.staticsOrders());
+    }
+
+    /**
+     * 财务数据整合-供应商结算
+     * @param goodsId
+     * @return
+     */
+    @GetMapping("/integrateData")
+    public RespBean integrateData(Long goodsId){
+        return RespBean.ok("", orderListService.integrateData(goodsId));
     }
 }

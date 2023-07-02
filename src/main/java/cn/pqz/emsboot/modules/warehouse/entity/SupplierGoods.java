@@ -30,7 +30,7 @@ public class SupplierGoods {
 
     private String model;
 
-    private String supplierName;
+    private Long supplierId;
 
     private String factoryName;
 

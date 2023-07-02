@@ -2,17 +2,22 @@ package cn.pqz.emsboot.modules.output.service;
 
 import cn.pqz.emsboot.component.util.OrderNumUtil;
 import cn.pqz.emsboot.component.util.OrderStateEnum;
+import cn.pqz.emsboot.component.util.OrderTypeEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.business.service.FinanceService;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
+import cn.pqz.emsboot.modules.output.http.OrderListResponse;
 import cn.pqz.emsboot.modules.output.http.OrderRequest;
 import cn.pqz.emsboot.modules.output.http.OrderResponse;
 import cn.pqz.emsboot.modules.output.mapper.Client_orderMapper;
 import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.sys.entity.User;
 import cn.pqz.emsboot.modules.sys.mapper.UserMapper;
+import cn.pqz.emsboot.modules.warehouse.entity.Goods;
+import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -39,16 +44,19 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     private UserMapper userMapper;
     @Resource
     private FinanceService financeService;
+
+    @Resource
+    private GoodsService goodsService;
     /**
      * 订单分页查询
      */
-    public IPage<OrderList> orderList(Integer pageNum, Integer size,
+    public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      String query, String orderNumber,
                                      Integer orderState, Integer orderType) {
         return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState), String.valueOf(orderType));
     }
 
-    public IPage<OrderList> orderList(Integer pageNum, Integer size,
+    public Map<String,Object> orderList(Integer pageNum, Integer size,
                                       String query, String orderNumber,
                                       String orderState, String orderType) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
@@ -64,7 +72,30 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (StringUtils.isNotBlank(orderType)){
             queryWrapper.in("orderType", Arrays.asList(orderType.split(",")));
         }
-        return orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
+        Page<OrderList> orderListPage = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
+        List<OrderListResponse> list = new ArrayList<>();
+        for (OrderList record : orderListPage.getRecords()) {
+            OrderListResponse orderListResponse = new OrderListResponse();
+            BeanUtils.copyProperties(record, orderListResponse);
+            orderListResponse.setName(goodsService.searchById(record.getGoodsId()).getName());
+            list.add(orderListResponse);
+        }
+        Map<String,Object> map = new HashMap<>();
+        map.put("total", orderListPage.getTotal());
+        map.put("data", list);
+        return map;
+    }
+
+    public List<OrderListResponse> getDataList(OrderStateEnum orderStateEnum){
+        Map<String, Object> map = this.orderList(1, 100, null, null, orderStateEnum.getCode(), null);
+        return JSONObject.parseArray(JSONObject.toJSONString(map.get("data")), OrderListResponse.class);
+    }
+
+    public void stateChange(OrderStateEnum originState, OrderStateEnum targetState) {
+        List<OrderListResponse> dataList = this.getDataList(originState);
+        for (OrderListResponse record : dataList) {
+            this.updateOrderState(targetState, record.getOrderNum());
+        }
     }
 
     public Map<String,Object> orderList(Integer pageNum, Integer size,
@@ -109,6 +140,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             if (user != null) {
                 orderResponse.setOperateName(user.getName());
             }
+            orderResponse.setName(goodsService.searchById(record.getGoodsId()).getName());
             list.add(orderResponse);
         }
         Map<String,Object> map = new HashMap<>();
@@ -127,12 +159,15 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         order.setOrderNum(OrderNumUtil.GetRandom());
         order.setPay(false);
         order.setTransport(false);
-        if (orderRequest.isChecked()){
+        long goodsId = orderRequest.getGoodsId();
+        Goods goods = goodsService.searchById(goodsId);
+        if (goods.getRemainCount() < orderRequest.getCount()){
             order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
             // 和供应商添加财务关系
             financeService.addRecord(3, orderRequest.getPrice().longValue(),-1);
-        }else {
+        }else{
             order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
+            goodsService.updateRemainCount(goods, orderRequest.getCount());
         }
         financeService.addRecord(1, orderRequest.getPrice().longValue(),1);
         User user = UserUtil.getCurrentUser();
@@ -198,5 +233,33 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public List<OrderList> queryInvoiceList(){
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<OrderList>().eq("invoiceEnabled",true);
         return orderListMapper.selectList(queryWrapper);
+    }
+
+    public List<Map<String, Object>> staticsOrders(){
+        return orderListMapper.staticsOrders();
+    }
+
+    public Map<String, Object> integrateData(Long goodsId) {
+        List<Map<String, Object>> list = orderListMapper.querySupplierSettlement(goodsId);
+        Map<String, Object> res = new HashMap<>();
+        long count = 0,totalPrice = 0,supplyCount = 0,backCount = 0;
+        for (Map<String, Object> map : list) {
+            res.put("name", map.get("name"));
+            res.put("price", map.get("price"));
+            long totalCount = Long.parseLong(map.get("totalCount").toString());
+            long price = Long.parseLong(map.get("totalPrice").toString());
+            if (map.get("orderType").toString().equals(OrderTypeEnum.BACK_GOOD.name())){
+                count -= totalCount;
+                totalPrice -= price;
+            }else{
+                count += totalCount;
+                totalPrice += price;
+            }
+        }
+        res.put("supplyCount", supplyCount);
+        res.put("backCount", backCount);
+        res.put("settlementCount", count);
+        res.put("settlementPrice", totalPrice);
+        return res;
     }
 }

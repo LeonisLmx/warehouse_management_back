@@ -5,6 +5,7 @@ import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.business.entity.Substation;
 import cn.pqz.emsboot.modules.business.service.SubstationService;
+import cn.pqz.emsboot.modules.business.service.SupplierService;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.entity.OutputGoodsLog;
 import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,18 +57,17 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
     @Resource
     private SupplierGoodsMapper supplierGoodsMapper;
 
+    @Resource
+    private SupplierService supplierService;
+
     private final Logger logger=Logger.getLogger(GoodsService.class);
 
+    public List<Goods> searchList(){
+        return goodsMapper.selectList(new QueryWrapper<>());
+    }
 
-    public List<Goods> enterList(Long startTime, Long endTime){
-        QueryWrapper<Goods> queryWrapper = new QueryWrapper<>();
-        if ( startTime != null) {
-            queryWrapper.ge("date", new Date(startTime));
-        }
-        if (endTime != null) {
-            queryWrapper.le("date", new Date(endTime));
-        }
-        return goodsMapper.selectList(queryWrapper);
+    public List<Map<String,Object>> enterList(Long startTime, Long endTime){
+        return goodsMapper.searchList(startTime == null?null:new Date(startTime), endTime == null?null:new Date(endTime));
     }
 
     public String[] goodsPosition(Integer gid){
@@ -193,7 +194,7 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         goods.setType(1);
         goods.setDate(supplierGoods.getDate());
         goods.setRemainCount(goods.getCount());
-        goods.setSupplierName(supplierGoods.getSupplierName());
+        goods.setSupplierId(supplierGoods.getSupplierId());
         User user = UserUtil.getCurrentUser();
         goods.setOrderNum(OrderNumUtil.GetRandom());
         goods.setOperator(user.getName());
@@ -203,5 +204,11 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     public Goods searchById(Long id){
         return goodsMapper.selectById(id);
+    }
+
+    public void updateRemainCount(Goods goods, Integer count){
+        Goods res = new Goods();
+        res.setRemainCount(goods.getRemainCount() - count);
+        goodsMapper.update(res, new QueryWrapper<Goods>().eq("id",goods.getId()));
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class SupplierGoodsService {
@@ -22,8 +23,8 @@ public class SupplierGoodsService {
     @Resource
     private GoodsService goodsService;
 
-    public List<SupplierGoods> list(){
-        return supplierGoodsMapper.selectList(new QueryWrapper<>());
+    public List<Map<String,Object>> list(){
+        return supplierGoodsMapper.searchList();
     }
 
     public int insertGoods(SupplierGoods supplierGoods){
@@ -39,5 +40,9 @@ public class SupplierGoodsService {
         SupplierGoods res = new SupplierGoods();
         res.setGoodsId(goodsService.supplierGoodsEnter(supplierGoodsMapper.selectById(id), substationId).longValue());
         return supplierGoodsMapper.update(res, new QueryWrapper<SupplierGoods>().eq("id",id));
+    }
+
+    public List<Map<String, Object>> staticsOperates(){
+        return supplierGoodsMapper.staticsOperates();
     }
 }
