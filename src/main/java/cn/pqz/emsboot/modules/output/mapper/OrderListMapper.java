@@ -27,4 +27,8 @@ public interface OrderListMapper extends BaseMapper<OrderList> {
     List<Map<String, Object>> querySubstationSettlement(@RequestParam("startDate")Date startDate,
                                                         @RequestParam("endDate")Date endDate,
                                                         @RequestParam("substationId")Long substationId);
+
+    List<Map<String, Object>> queryStateData();
+
+    List<Map<String, Object>> queryTypeData();
 }

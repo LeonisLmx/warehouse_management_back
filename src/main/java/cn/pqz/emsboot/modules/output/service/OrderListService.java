@@ -312,4 +312,12 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         }
         return ans.values();
     }
+
+    public List<Map<String, Object>> queryStateData(){
+        return orderListMapper.queryStateData();
+    }
+
+    public List<Map<String, Object>> queryTypeData(){
+        return orderListMapper.queryTypeData();
+    }
 }

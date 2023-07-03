@@ -197,4 +197,14 @@ public class OrderController {
                                                 @RequestParam("substationId")Long substationId){
         return RespBean.ok("查询成功", orderListService.integrateDataBySubstation(startTime, endTime, substationId));
     }
+
+    @GetMapping("/queryStateData")
+    public RespBean queryStateData(){
+        return RespBean.ok("", orderListService.queryStateData());
+    }
+
+    @GetMapping("/queryTypeData")
+    public RespBean queryTypeData(){
+        return RespBean.ok("", orderListService.queryTypeData());
+    }
 }

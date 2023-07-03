@@ -50,4 +50,12 @@
         </if>
         group by ol.orderState
     </select>
+
+    <select id="queryStateData" resultType="map">
+        select count(0) as count, ol.orderState  from order_list ol  group by ol.orderState
+    </select>
+
+    <select id="queryTypeData" resultType="map">
+        select count(0) as count, ol.orderType  from order_list ol  group by ol.orderType
+    </select>
 </mapper>
