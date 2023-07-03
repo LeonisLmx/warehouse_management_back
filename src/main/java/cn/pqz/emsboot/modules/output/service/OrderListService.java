@@ -5,6 +5,7 @@ import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.OrderTypeEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.business.service.FinanceService;
+import cn.pqz.emsboot.modules.business.service.InvoiceService;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -44,7 +46,8 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     private UserMapper userMapper;
     @Resource
     private FinanceService financeService;
-
+    @Resource
+    private InvoiceService invoiceService;
     @Resource
     private GoodsService goodsService;
     /**
@@ -164,12 +167,18 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (goods.getRemainCount() < orderRequest.getCount()){
             order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
             // 和供应商添加财务关系
-            financeService.addRecord(3, orderRequest.getPrice().longValue(),-1);
+//            financeService.addRecord(3, orderRequest.getPrice().longValue(),-1);
         }else{
             order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
-            goodsService.updateRemainCount(goods, orderRequest.getCount());
+//            goodsService.updateRemainCount(goods, orderRequest.getCount());
         }
-        financeService.addRecord(1, orderRequest.getPrice().longValue(),1);
+        if (orderRequest.isInvoiceEnabled()){
+            Client client = clientService.getClientById(orderRequest.getClientId());
+            OrderTypeEnum orderTypeEnum = OrderTypeEnum.valueOf(orderRequest.getOrderType());
+            invoiceService.insert(client.getName(), BigDecimal.valueOf(orderRequest.getPrice() * orderRequest.getCount()),
+                    orderTypeEnum.getDescription() +  ": " + goods.getName() + "-" + orderRequest.getCount() + orderRequest.getUtil());
+        }
+//        financeService.addRecord(1, orderRequest.getPrice().longValue(),1);
         User user = UserUtil.getCurrentUser();
         order.setOperateId(user.getId());
         orderListMapper.insert(order);
@@ -239,27 +248,68 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         return orderListMapper.staticsOrders();
     }
 
-    public Map<String, Object> integrateData(Long goodsId) {
-        List<Map<String, Object>> list = orderListMapper.querySupplierSettlement(goodsId);
-        Map<String, Object> res = new HashMap<>();
-        long count = 0,totalPrice = 0,supplyCount = 0,backCount = 0;
+    public Collection<Map<String, Object>> integrateDataBySupplierId(Long supplierId) {
+        List<Map<String, Object>> list = orderListMapper.querySupplierSettlement(supplierId);
+        Map<Long,Map<String, Object>> ans = new HashMap<>();
         for (Map<String, Object> map : list) {
+            long goodsId = Long.parseLong(map.get("goodsId").toString());
+            Map<String,Object> res = ans.getOrDefault(goodsId, new HashMap<>());
             res.put("name", map.get("name"));
             res.put("price", map.get("price"));
+            long count = Long.parseLong(res.getOrDefault("count", "0").toString());
+            double totalPrice = Double.parseDouble(res.getOrDefault("totalPrice","0").toString());
+            long supplyCount = Long.parseLong(res.getOrDefault("supplyCount","0").toString());
+            long backCount = Long.parseLong(res.getOrDefault("backCount","0").toString());
             long totalCount = Long.parseLong(map.get("totalCount").toString());
-            long price = Long.parseLong(map.get("totalPrice").toString());
-            if (map.get("orderType").toString().equals(OrderTypeEnum.BACK_GOOD.name())){
+            double price = Double.parseDouble(map.get("totalPrice").toString());
+            if (Integer.parseInt(map.get("orderType").toString()) == OrderTypeEnum.BACK_GOOD.getCode()){
                 count -= totalCount;
                 totalPrice -= price;
+                backCount += totalCount;
             }else{
                 count += totalCount;
                 totalPrice += price;
+                supplyCount += totalCount;
             }
+            res.put("supplyCount", supplyCount);
+            res.put("backCount", backCount);
+            res.put("settlementCount", count);
+            res.put("settlementPrice", totalPrice);
+            ans.put(goodsId, res);
         }
-        res.put("supplyCount", supplyCount);
-        res.put("backCount", backCount);
-        res.put("settlementCount", count);
-        res.put("settlementPrice", totalPrice);
-        return res;
+        return ans.values();
+    }
+
+    public Collection<Map<String,Object>> integrateDataBySubstation(Long startTime,
+                                                                    Long endTime,
+                                                                    Long substationId){
+        Date start = startTime == null?null:new Date(startTime);
+        Date end = endTime == null?null:new Date(endTime);
+        List<Map<String, Object>> list = orderListMapper.querySubstationSettlement(start, end, substationId);
+        Map<Long, Map<String, Object>> ans = new HashMap<>();
+        for (Map<String, Object> map : list) {
+            long goodsId = Long.parseLong(map.get("goodsId").toString());
+            Map<String,Object> res = ans.getOrDefault(goodsId, new HashMap<>());
+            res.put("name", map.get("name"));
+            long totalCount = Long.parseLong(res.getOrDefault("totalCount", "0").toString());
+            double totalPrice = Double.parseDouble(res.getOrDefault("totalPrice","0").toString());
+            long backCount = Long.parseLong(res.getOrDefault("backCount", "0").toString());
+            long backPrice = Long.parseLong(res.getOrDefault("backPrice","0").toString());
+            long paramCount = Long.parseLong(map.get("totalCount").toString());
+            double paramPrice = Double.parseDouble(map.get("totalPrice").toString());
+            if (Integer.parseInt(map.get("orderType").toString()) == OrderTypeEnum.BACK_GOOD.getCode()){
+                backPrice += paramPrice;
+                backCount += paramCount;
+            }else{
+                totalCount += paramCount;
+                totalPrice += paramPrice;
+            }
+            res.put("backPrice", backPrice);
+            res.put("backCount", backCount);
+            res.put("totalCount", totalCount);
+            res.put("totalPrice", totalPrice);
+            ans.put(goodsId, res);
+        }
+        return ans.values();
     }
 }

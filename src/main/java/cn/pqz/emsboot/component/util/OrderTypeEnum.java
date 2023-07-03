@@ -35,4 +35,13 @@ public enum OrderTypeEnum {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public static OrderTypeEnum valueOf(Integer code){
+        for (OrderTypeEnum value : OrderTypeEnum.values()) {
+            if (value.getCode() == code){
+                return value;
+            }
+        }
+        return null;
+    }
 }

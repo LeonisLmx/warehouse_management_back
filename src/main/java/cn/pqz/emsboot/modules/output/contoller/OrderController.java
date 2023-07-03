@@ -7,7 +7,6 @@ import cn.pqz.emsboot.modules.output.service.OrderListService;
 import cn.pqz.emsboot.modules.sys.entity.RespBean;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -184,11 +183,18 @@ public class OrderController {
 
     /**
      * 财务数据整合-供应商结算
-     * @param goodsId
+     * @param supplierId
      * @return
      */
-    @GetMapping("/integrateData")
-    public RespBean integrateData(Long goodsId){
-        return RespBean.ok("", orderListService.integrateData(goodsId));
+    @GetMapping("/integrateDataBySupplierId")
+    public RespBean integrateDataBySupplierId(Long supplierId){
+        return RespBean.ok("查询成功", orderListService.integrateDataBySupplierId(supplierId));
+    }
+
+    @GetMapping("/integrateDataBySubstationId")
+    public RespBean integrateDataBySubstationId(@RequestParam(value = "startTime",required = false)Long startTime,
+                                                @RequestParam(value = "endTime",required = false)Long endTime,
+                                                @RequestParam("substationId")Long substationId){
+        return RespBean.ok("查询成功", orderListService.integrateDataBySubstation(startTime, endTime, substationId));
     }
 }

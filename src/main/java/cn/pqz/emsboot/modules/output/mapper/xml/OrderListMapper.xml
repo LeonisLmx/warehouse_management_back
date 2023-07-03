@@ -29,9 +29,25 @@
     </select>
 
     <select id="querySupplierSettlement" resultType="map">
-        select g.name,sum(ol.count) as totalCount,sum(ol.count * ol.price) as totalPrice,ol.goodsId ,ol.orderType
+        select g.supplierId ,ol.price as price, g.name,sum(ol.count) as totalCount,sum(ol.count * ol.price) as totalPrice,ol.goodsId ,ol.orderType
         from order_list ol
-        left join goods g on ol .goodsId = g.id  where ol.goodsId = #{goodsId}
+        left join goods g on ol .goodsId = g.id  where g.supplierId = #{supplierId}
         group by ol.orderType
+    </select>
+
+    <select id="querySubstationSettlement" resultType="map">
+        select g.name ,g.id as goodsId, sum(ol.count) as totalCount, sum(ol.count * ol.price) as totalPrice,ol.orderType,ol.substationId
+        from order_list ol left join goods g on ol.goodsId = g.id
+        where 1 = 1
+        <if test="startDate != null">
+        and ol.`date` &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            and ol.`date` &lt;= #{endDate}
+        </if>
+        <if test="substationId != null">
+            and ol.substationId  = #{substationId}
+        </if>
+        group by ol.orderState
     </select>
 </mapper>

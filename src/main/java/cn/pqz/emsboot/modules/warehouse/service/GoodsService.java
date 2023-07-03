@@ -4,6 +4,7 @@ import cn.pqz.emsboot.component.util.OrderNumUtil;
 import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
 import cn.pqz.emsboot.modules.business.entity.Substation;
+import cn.pqz.emsboot.modules.business.service.InvoiceService;
 import cn.pqz.emsboot.modules.business.service.SubstationService;
 import cn.pqz.emsboot.modules.business.service.SupplierService;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -59,6 +60,9 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
 
     @Resource
     private SupplierService supplierService;
+
+    @Resource
+    private InvoiceService invoiceService;
 
     private final Logger logger=Logger.getLogger(GoodsService.class);
 

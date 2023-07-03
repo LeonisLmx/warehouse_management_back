@@ -22,5 +22,9 @@ public interface OrderListMapper extends BaseMapper<OrderList> {
 
     List<Map<String, Object>> staticsOrders();
 
-    List<Map<String, Object>> querySupplierSettlement(@RequestParam("goodsId")Long goodsId);
+    List<Map<String, Object>> querySupplierSettlement(@RequestParam("supplierId")Long supplierId);
+
+    List<Map<String, Object>> querySubstationSettlement(@RequestParam("startDate")Date startDate,
+                                                        @RequestParam("endDate")Date endDate,
+                                                        @RequestParam("substationId")Long substationId);
 }
