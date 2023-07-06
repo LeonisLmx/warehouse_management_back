@@ -8,10 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author urey.liu
@@ -101,5 +98,10 @@ public class SubstationService {
         Substation substation = substationMapper.selectById(substationId);
         sb.insert(0,substation.getName()).insert(0,"/");
         return getFullSubstationInfo(substation.getParentId(), sb);
+    }
+
+    public Substation randomSubstation(){
+        List<Substation> substations = substationMapper.selectList(new QueryWrapper<>());
+        return substations.get(new Random().nextInt(substations.size()));
     }
 }

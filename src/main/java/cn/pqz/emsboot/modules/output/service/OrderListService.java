@@ -4,8 +4,10 @@ import cn.pqz.emsboot.component.util.OrderNumUtil;
 import cn.pqz.emsboot.component.util.OrderStateEnum;
 import cn.pqz.emsboot.component.util.OrderTypeEnum;
 import cn.pqz.emsboot.component.util.UserUtil;
+import cn.pqz.emsboot.modules.business.entity.Substation;
 import cn.pqz.emsboot.modules.business.service.FinanceService;
 import cn.pqz.emsboot.modules.business.service.InvoiceService;
+import cn.pqz.emsboot.modules.business.service.SubstationService;
 import cn.pqz.emsboot.modules.output.entity.Client;
 import cn.pqz.emsboot.modules.output.entity.Client_order;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
@@ -23,6 +25,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 
+@Slf4j
 @Service
 @Transactional
 public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
@@ -50,13 +54,15 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     private InvoiceService invoiceService;
     @Resource
     private GoodsService goodsService;
+    @Resource
+    private SubstationService substationService;
     /**
      * 订单分页查询
      */
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      String query, String orderNumber,
                                      Integer orderState, Integer orderType) {
-        return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState), String.valueOf(orderType));
+        return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState), orderType == null?null:String.valueOf(orderType));
     }
 
     public Map<String,Object> orderList(Integer pageNum, Integer size,
@@ -96,6 +102,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
 
     public void stateChange(OrderStateEnum originState, OrderStateEnum targetState) {
         List<OrderListResponse> dataList = this.getDataList(originState);
+        log.info("search data by state {} {} count",originState.name(),dataList.size());
         for (OrderListResponse record : dataList) {
             this.updateOrderState(targetState, record.getOrderNum());
         }
@@ -166,11 +173,9 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         Goods goods = goodsService.searchById(goodsId);
         if (goods.getRemainCount() < orderRequest.getCount()){
             order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
-            // 和供应商添加财务关系
-//            financeService.addRecord(3, orderRequest.getPrice().longValue(),-1);
         }else{
+            goodsService.updateRemainCount(goods, orderRequest.getCount());
             order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
-//            goodsService.updateRemainCount(goods, orderRequest.getCount());
         }
         if (orderRequest.isInvoiceEnabled()){
             Client client = clientService.getClientById(orderRequest.getClientId());
@@ -178,7 +183,6 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             invoiceService.insert(client.getName(), BigDecimal.valueOf(orderRequest.getPrice() * orderRequest.getCount()),
                     orderTypeEnum.getDescription() +  ": " + goods.getName() + "-" + orderRequest.getCount() + orderRequest.getUtil());
         }
-//        financeService.addRecord(1, orderRequest.getPrice().longValue(),1);
         User user = UserUtil.getCurrentUser();
         order.setOperateId(user.getId());
         orderListMapper.insert(order);
@@ -218,11 +222,17 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
     }
 
-    public int updateSubstation(Long substationId, String orderNum){
+    public Substation updateSubstation(Long substationId, String orderNum){
+        Substation substation = new Substation();
+        if (substationId == null){
+            substation = substationService.randomSubstation();
+            substationId = substation.getId();
+        }
         OrderList orderList = new OrderList();
         orderList.setSubstationId(substationId);
         orderList.setOrderState(OrderStateEnum.ORDER_WAREHOUSE.getCode());
-        return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+        orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
+        return substation;
     }
 
     public int updateExpress(String expressName, String orderNum){

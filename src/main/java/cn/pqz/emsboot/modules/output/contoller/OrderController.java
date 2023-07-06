@@ -1,6 +1,7 @@
 package cn.pqz.emsboot.modules.output.contoller;
 
 import cn.pqz.emsboot.component.util.OrderStateEnum;
+import cn.pqz.emsboot.modules.business.entity.Substation;
 import cn.pqz.emsboot.modules.output.entity.OrderList;
 import cn.pqz.emsboot.modules.output.http.OrderRequest;
 import cn.pqz.emsboot.modules.output.service.OrderListService;
@@ -146,6 +147,12 @@ public class OrderController {
     public RespBean selectSubstation(@RequestBody JSONObject jsonObject){
         return RespBean.ok("分配站点成功", orderListService.updateSubstation(
                 jsonObject.getLong("substationId"),jsonObject.getString("orderNum")));
+    }
+
+    @PostMapping("/selectRandomSubstation")
+    public RespBean selectRandomSubstation(@RequestBody JSONObject jsonObject){
+        Substation substation = orderListService.updateSubstation(null, jsonObject.getString("orderNum"));
+        return RespBean.ok("随机分配至" + substation.getName());
     }
 
     /**

@@ -578,7 +578,7 @@ CREATE TABLE `output_log` (
 -- Records of output_log
 -- ----------------------------
 BEGIN;
-INSERT INTO `output_log` VALUES (1, 'test', '测试', '2020-03-18 19:54:39', '0000-00-00 00:00:00', NULL, NULL);
+INSERT INTO `output_log` VALUES (1, 'test', '测试', '2020-03-18 19:54:39', '2020-03-20 15:41:56', NULL, NULL);
 INSERT INTO `output_log` VALUES (4, 'N202003181349100001', '消毒水', '2020-03-19 20:24:58', '2020-03-20 20:25:10', 1, 1);
 INSERT INTO `output_log` VALUES (5, 'N202003181540180001', 'N95口罩', '2020-03-19 21:02:35', '2020-03-20 14:48:22', 2, 1);
 INSERT INTO `output_log` VALUES (6, '', '茶叶', '2020-03-19 22:30:44', '2020-03-20 14:26:12', 3, 1);
