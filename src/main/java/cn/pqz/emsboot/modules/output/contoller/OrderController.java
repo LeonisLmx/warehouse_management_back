@@ -35,8 +35,9 @@ public class OrderController {
                               @RequestParam(value = "query",required = false) String query,
                               @RequestParam(value = "orderNumber", required = false)String orderNumber,
                               @RequestParam(value = "orderState", required = false) String orderState,
-                              @RequestParam(value = "orderType", required = false) String orderType){
-        return RespBean.ok("", orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType));
+                              @RequestParam(value = "orderType", required = false) String orderType,
+                              @RequestParam(value = "goodsId", required = false)Long goodsId){
+        return RespBean.ok("", orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType, goodsId));
     }
 
     @GetMapping("/list/")

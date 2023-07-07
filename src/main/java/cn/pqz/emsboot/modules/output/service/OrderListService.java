@@ -61,13 +61,15 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
      */
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      String query, String orderNumber,
-                                     Integer orderState, Integer orderType) {
-        return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState), orderType == null?null:String.valueOf(orderType));
+                                     Integer orderState, Integer orderType, Long goodsId) {
+        return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState),
+                orderType == null?null:String.valueOf(orderType), goodsId);
     }
 
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                       String query, String orderNumber,
-                                      String orderState, String orderType) {
+                                      String orderState, String orderType,
+                                        Long goodsId) {
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(query)) {
             queryWrapper.like("name", query);
@@ -80,6 +82,9 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         }
         if (StringUtils.isNotBlank(orderType)){
             queryWrapper.in("orderType", Arrays.asList(orderType.split(",")));
+        }
+        if (goodsId != null){
+            queryWrapper.eq("goodsId", goodsId);
         }
         Page<OrderList> orderListPage = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
         List<OrderListResponse> list = new ArrayList<>();
@@ -96,7 +101,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     }
 
     public List<OrderListResponse> getDataList(OrderStateEnum orderStateEnum){
-        Map<String, Object> map = this.orderList(1, 100, null, null, orderStateEnum.getCode(), null);
+        Map<String, Object> map = this.orderList(1, 100, null, null, orderStateEnum.getCode(), null, null);
         return JSONObject.parseArray(JSONObject.toJSONString(map.get("data")), OrderListResponse.class);
     }
 
@@ -174,7 +179,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (goods.getRemainCount() < orderRequest.getCount()){
             order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
         }else{
-            goodsService.updateRemainCount(goods, orderRequest.getCount());
+//            goodsService.updateRemainCount(goods, orderRequest.getCount());
             order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
         }
         if (orderRequest.isInvoiceEnabled()){

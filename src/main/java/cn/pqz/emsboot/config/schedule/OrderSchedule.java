@@ -32,11 +32,11 @@ public class OrderSchedule {
     /**
      * ORDER_WAREHOUSE -> ORDER_TRANSPORT
      */
-    @Scheduled(initialDelay = 60_000,fixedDelay = 10_000)
-    public void scheduleOrderStateTaskOrderWarehouse(){
-        log.info("start schedule task by order state ORDER_TRANSPORT to target state ORDER_TRANSPORT");
-        orderListService.stateChange(OrderStateEnum.ORDER_WAREHOUSE, OrderStateEnum.ORDER_TRANSPORT);
-    }
+//    @Scheduled(initialDelay = 60_000,fixedDelay = 10_000)
+//    public void scheduleOrderStateTaskOrderWarehouse(){
+//        log.info("start schedule task by order state ORDER_TRANSPORT to target state ORDER_TRANSPORT");
+//        orderListService.stateChange(OrderStateEnum.ORDER_WAREHOUSE, OrderStateEnum.ORDER_TRANSPORT);
+//    }
 
     /**
      * ORDER_TRANSPORT -> GOOD_IN_STORAGE
