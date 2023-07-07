@@ -28,7 +28,7 @@ public class SubstationController {
         return RespBean.ok("", service.listByParentId(parentId));
     }
 
-        @GetMapping("/listCount")
+    @GetMapping("/listCount")
     public RespBean listCount(@RequestParam(value = "id",required = false) Long id){
         return RespBean.ok("", service.listCount(id));
     }
@@ -54,5 +54,11 @@ public class SubstationController {
         Long substationId = goodsService.searchById(goodsId).getSubstationId();
         StringBuilder res = service.getFullSubstationInfo(substationId, new StringBuilder());
         return RespBean.ok("", res.substring(1,res.length()));
+    }
+
+
+    @GetMapping("/listData")
+    public RespBean listData(){
+        return RespBean.ok("", service.listData());
     }
 }

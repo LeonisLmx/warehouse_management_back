@@ -104,4 +104,8 @@ public class SubstationService {
         List<Substation> substations = substationMapper.selectList(new QueryWrapper<>());
         return substations.get(new Random().nextInt(substations.size()));
     }
+
+    public List<Substation> listData(){
+        return substationMapper.selectList(new QueryWrapper<>());
+    }
 }

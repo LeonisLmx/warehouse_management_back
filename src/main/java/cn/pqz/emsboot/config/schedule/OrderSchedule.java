@@ -23,7 +23,7 @@ public class OrderSchedule {
     /**
      * NEW_ORDER -> ORDER_SCHEDULE
      */
-    @Scheduled(initialDelay = 0,fixedDelay = 60_000)
+    @Scheduled(initialDelay = 0,fixedDelay = 10_000)
     public void scheduleOrderStateTaskNewOrder(){
         log.info("start schedule task by order state NEW_ORDER to target state ORDER_SCHEDULE");
         orderListService.stateChange(OrderStateEnum.NEW_ORDER, OrderStateEnum.ORDER_SCHEDULE);
@@ -32,7 +32,7 @@ public class OrderSchedule {
     /**
      * ORDER_WAREHOUSE -> ORDER_TRANSPORT
      */
-    @Scheduled(initialDelay = 60_000,fixedDelay = 60_000)
+    @Scheduled(initialDelay = 60_000,fixedDelay = 10_000)
     public void scheduleOrderStateTaskOrderWarehouse(){
         log.info("start schedule task by order state ORDER_TRANSPORT to target state ORDER_TRANSPORT");
         orderListService.stateChange(OrderStateEnum.ORDER_WAREHOUSE, OrderStateEnum.ORDER_TRANSPORT);
@@ -41,7 +41,7 @@ public class OrderSchedule {
     /**
      * ORDER_TRANSPORT -> GOOD_IN_STORAGE
      */
-    @Scheduled(initialDelay = 120_000,fixedDelay = 60_000)
+    @Scheduled(initialDelay = 120_000,fixedDelay = 10_000)
     public void scheduleOrderStateTaskOrderTransport(){
         log.info("start schedule task by order state ORDER_TRANSPORT to target state GOOD_IN_STORAGE");
         orderListService.stateChange(OrderStateEnum.ORDER_TRANSPORT, OrderStateEnum.GOOD_IN_STORAGE);
@@ -50,7 +50,7 @@ public class OrderSchedule {
     /**
      * GOOD_IN_STORAGE -> ORDER_WAIT_ALLOCATION
      */
-    @Scheduled(initialDelay = 180_000,fixedDelay = 60_000)
+    @Scheduled(initialDelay = 180_000,fixedDelay = 10_000)
     public void scheduleOrderStateTaskGoodInStorage(){
         log.info("start schedule task by order state GOOD_IN_STORAGE to target state ORDER_WAIT_ALLOCATION");
         orderListService.stateChange(OrderStateEnum.GOOD_IN_STORAGE, OrderStateEnum.ORDER_WAIT_ALLOCATION);
@@ -60,7 +60,7 @@ public class OrderSchedule {
     /**
      * ALLOCATION_OUT_STORAGE -> DELIVERY_GOOD
      */
-    @Scheduled(initialDelay = 240_000,fixedDelay = 60_000)
+    @Scheduled(initialDelay = 240_000,fixedDelay = 10_000)
     public void scheduleOrderStateTaskAllocationOutStorage(){
         log.info("start schedule task by order state ALLOCATION_OUT_STORAGE to target state DELIVERY_GOOD");
         orderListService.stateChange(OrderStateEnum.ALLOCATION_OUT_STORAGE, OrderStateEnum.DELIVERY_GOOD);
