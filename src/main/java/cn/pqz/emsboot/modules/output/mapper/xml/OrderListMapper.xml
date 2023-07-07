@@ -36,7 +36,7 @@
     </select>
 
     <select id="querySubstationSettlement" resultType="map">
-        select g.name ,g.id as goodsId, sum(ol.count) as totalCount, sum(ol.count * ol.price) as totalPrice,ol.orderType,ol.substationId
+        select g.name ,g.id as goodsId, sum(ol.count) as totalCount, sum(ol.count * ol.price) as totalPrice,ol.orderType,ol.substationId,ol.orderState
         from order_list ol left join goods g on ol.goodsId = g.id
         where 1 = 1
         <if test="startDate != null">

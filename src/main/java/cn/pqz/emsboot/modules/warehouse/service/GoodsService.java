@@ -166,7 +166,7 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> {
         log.setCreateTime(new Date());
         outputGoodsLogMapper.insert(log);
         // 更新订单状态
-        orderListService.updateOrderState(OrderStateEnum.ORDER_WAREHOUSE, orderNum);
+        orderListService.updateOrderState(OrderStateEnum.ORDER_TRANSPORT, orderNum);
         Goods goods = new Goods();
         goods.setRemainCount(count - orderCount);
         goodsMapper.update(goods, new QueryWrapper<Goods>().eq("id",goodsId));
