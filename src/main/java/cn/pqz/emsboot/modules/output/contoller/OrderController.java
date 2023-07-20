@@ -26,18 +26,19 @@ public class OrderController {
      * 获取订单列表
      * @param pageNum
      * @param size
-     * @param query
+     * @param name
      * @return
      */
     @GetMapping("/orderList/")
     public RespBean orderList(@RequestParam("pageNum") Integer pageNum,
                               @RequestParam("size") Integer size,
-                              @RequestParam(value = "query",required = false) String query,
+                              @RequestParam(value = "name",required = false) String name,
                               @RequestParam(value = "orderNumber", required = false)String orderNumber,
                               @RequestParam(value = "orderState", required = false) String orderState,
                               @RequestParam(value = "orderType", required = false) String orderType,
-                              @RequestParam(value = "goodsId", required = false)Long goodsId){
-        return RespBean.ok("", orderListService.orderList(pageNum, size, query, orderNumber, orderState, orderType, goodsId));
+                              @RequestParam(value = "goodsId", required = false)Long goodsId,
+                              @RequestParam(value = "expressName", required = false) String expressName){
+        return RespBean.ok("", orderListService.orderList(pageNum, size, name, orderNumber, orderState, orderType, goodsId, expressName));
     }
 
     @GetMapping("/list/")

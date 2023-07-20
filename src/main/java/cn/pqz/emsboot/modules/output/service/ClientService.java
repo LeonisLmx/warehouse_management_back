@@ -33,7 +33,7 @@ public class ClientService extends ServiceImpl<ClientMapper, Client> {
             queryWrapper.like("name", name);
         }
         if (StringUtils.isNotBlank(phoneNumber)) {
-            queryWrapper.eq("phoneNumber", phoneNumber);
+            queryWrapper.eq("phone", phoneNumber);
         }
         if (StringUtils.isNotBlank(cardNumber)) {
             queryWrapper.eq("cardNumber", cardNumber);

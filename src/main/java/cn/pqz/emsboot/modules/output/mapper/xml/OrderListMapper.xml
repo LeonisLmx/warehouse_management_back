@@ -32,13 +32,13 @@
         select g.supplierId ,ol.price as price, g.name,sum(ol.count) as totalCount,sum(ol.count * ol.price) as totalPrice,ol.goodsId ,ol.orderType
         from order_list ol
         left join goods g on ol .goodsId = g.id  where g.supplierId = #{supplierId}
-        group by ol.orderType
+        group by ol.goodsId
     </select>
 
     <select id="querySubstationSettlement" resultType="map">
         select g.name ,g.id as goodsId, sum(ol.count) as totalCount, sum(ol.count * ol.price) as totalPrice,ol.orderType,ol.substationId,ol.orderState
         from order_list ol left join goods g on ol.goodsId = g.id
-        where 1 = 1
+        where 1 = 1 and (ol.orderState = 9 or ol.orderState = 10)
         <if test="startDate != null">
         and ol.`date` &gt;= #{startDate}
         </if>
@@ -48,7 +48,7 @@
         <if test="substationId != null">
             and ol.substationId  = #{substationId}
         </if>
-        group by ol.orderState
+        group by ol.goodsId
     </select>
 
     <select id="queryStateData" resultType="map">

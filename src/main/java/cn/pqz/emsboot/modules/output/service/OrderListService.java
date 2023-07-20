@@ -19,6 +19,7 @@ import cn.pqz.emsboot.modules.output.mapper.OrderListMapper;
 import cn.pqz.emsboot.modules.sys.entity.User;
 import cn.pqz.emsboot.modules.sys.mapper.UserMapper;
 import cn.pqz.emsboot.modules.warehouse.entity.Goods;
+import cn.pqz.emsboot.modules.warehouse.mapper.GoodsMapper;
 import cn.pqz.emsboot.modules.warehouse.service.GoodsService;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -49,30 +50,42 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     @Resource
     private UserMapper userMapper;
     @Resource
-    private FinanceService financeService;
-    @Resource
     private InvoiceService invoiceService;
     @Resource
     private GoodsService goodsService;
     @Resource
     private SubstationService substationService;
+    @Resource
+    private GoodsMapper goodsMapper;
     /**
      * 订单分页查询
      */
     public Map<String,Object> orderList(Integer pageNum, Integer size,
                                      String query, String orderNumber,
-                                     Integer orderState, Integer orderType, Long goodsId) {
+                                     Integer orderState, Integer orderType, Long goodsId, String expressName) {
         return this.orderList(pageNum, size, query, orderNumber, String.valueOf(orderState),
-                orderType == null?null:String.valueOf(orderType), goodsId);
+                orderType == null?null:String.valueOf(orderType), goodsId, expressName);
     }
 
     public Map<String,Object> orderList(Integer pageNum, Integer size,
-                                      String query, String orderNumber,
+                                      String name, String orderNumber,
                                       String orderState, String orderType,
-                                        Long goodsId) {
+                                        Long goodsId, String expressName) {
+        Map<String,Object> map = new HashMap<>();
         QueryWrapper<OrderList> queryWrapper = new QueryWrapper<>();
-        if (StringUtils.isNotBlank(query)) {
-            queryWrapper.like("name", query);
+        if (StringUtils.isNotBlank(name)) {
+            QueryWrapper<Goods> goodsQueryWrapper = new QueryWrapper<>();
+            goodsQueryWrapper.like("name",name);
+            List<Goods> goods = goodsMapper.selectList(goodsQueryWrapper);
+            List<Integer> ids = new ArrayList<>();
+            for (Goods good : goods) {
+                ids.add(good.getId());
+            }
+            if (ids.isEmpty()){
+                map.put("total", 0);
+                map.put("data", new ArrayList<>());
+            }
+            queryWrapper.in("goodsId", ids);
         }
         if (StringUtils.isNotBlank(orderNumber)){
             queryWrapper.eq("orderNum", orderNumber);
@@ -86,6 +99,9 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         if (goodsId != null){
             queryWrapper.eq("goodsId", goodsId);
         }
+        if (StringUtils.isNotBlank(expressName)){
+            queryWrapper.eq("expressName", expressName);
+        }
         Page<OrderList> orderListPage = orderListMapper.selectPage(new Page<>(pageNum, size), queryWrapper);
         List<OrderListResponse> list = new ArrayList<>();
         for (OrderList record : orderListPage.getRecords()) {
@@ -94,14 +110,13 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             orderListResponse.setName(goodsService.searchById(record.getGoodsId()).getName());
             list.add(orderListResponse);
         }
-        Map<String,Object> map = new HashMap<>();
         map.put("total", orderListPage.getTotal());
         map.put("data", list);
         return map;
     }
 
     public List<OrderListResponse> getDataList(OrderStateEnum orderStateEnum){
-        Map<String, Object> map = this.orderList(1, 100, null, null, orderStateEnum.getCode(), null, null);
+        Map<String, Object> map = this.orderList(1, 100, null, null, orderStateEnum.getCode(), null, null, null);
         return JSONObject.parseArray(JSONObject.toJSONString(map.get("data")), OrderListResponse.class);
     }
 
@@ -180,7 +195,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
             order.setOrderState(OrderStateEnum.LOSS_GOOD.getCode());
         }else{
 //            goodsService.updateRemainCount(goods, orderRequest.getCount());
-            order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.NEW_ORDER.getCode() : order.getOrderState());
+            order.setOrderState(orderRequest.getOrderState() == null ? OrderStateEnum.ORDER_SCHEDULE.getCode() : order.getOrderState());
         }
         if (orderRequest.isInvoiceEnabled()){
             Client client = clientService.getClientById(orderRequest.getClientId());
@@ -235,7 +250,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
         }
         OrderList orderList = new OrderList();
         orderList.setSubstationId(substationId);
-        orderList.setOrderState(OrderStateEnum.ORDER_WAREHOUSE.getCode());
+        orderList.setOrderState(OrderStateEnum.ORDER_WAIT_ALLOCATION.getCode());
         orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
         return substation;
     }
@@ -243,7 +258,7 @@ public class OrderListService extends ServiceImpl<OrderListMapper,OrderList> {
     public int updateExpress(String expressName, String orderNum){
         OrderList orderList = new OrderList();
         orderList.setExpressName(expressName);
-        orderList.setOrderState(OrderStateEnum.ALLOCATION_OUT_STORAGE.getCode());
+        orderList.setOrderState(OrderStateEnum.DELIVERY_GOOD.getCode());
         return orderListMapper.update(orderList, new QueryWrapper<OrderList>().eq("orderNum",orderNum));
     }
 
